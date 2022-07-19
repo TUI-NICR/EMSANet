@@ -84,10 +84,10 @@ There are subsection for different things to do:
 2. Clone repository and install submodule packages:
     ```bash
     # do not forget the '--recursive' ;)
-    git clone --recursive https://nikrgl.informatik.tu-ilmenau.de/ssa/emsanet.git
+    git clone --recursive https://github.com/TUI-NICR/EMSANet
 
     # navigate to the cloned directory (required for installing some dependencies and to run the scripts later)
-    cd emsanet
+    cd EMSANet
 
     # dataset package
     pip install -e ./lib/nicr-scene-analysis-datasets

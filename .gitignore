@@ -112,7 +112,6 @@ core
 # Models
 *.onnx
 *.trt
-trained_models/
 slurm-*out
 
 # Plots / Images

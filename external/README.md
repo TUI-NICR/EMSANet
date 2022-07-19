@@ -15,9 +15,7 @@ python -m pip install detectron2 -f \
   https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
 
 # own package
-pip install nicr_scene_analysis_datasets==0.4.0
-# or
-pip install git+https://nikrgl.informatik.tu-ilmenau.de/ssa/nicr-scene-analysis-datasets@d2
+pip install ../lib/nicr-scene-analysis-datasets
 
 # Not sure if it's still required
 pip install setuptools==59.5.0
@@ -27,8 +25,4 @@ pip install setuptools==59.5.0
 For training the approach run:
 ```bash
 python train_net.py --config-file configs/NYUv2/panoptic_deeplab_R_52_os16_mg124_poly_200k_bs64_crop_640_640_coco_dsconv.yaml
-```
-For training the network internally:
-```bash
-python train_net.py --config-file configs/NYUv2/panoptic_deeplab_R_52_os16_mg124_poly_200k_bs64_crop_640_640_coco_dsconv.yaml DATASETS.BASE_PATH /datasets_nas/slurm_unpacked/nicr-scene-analysis-datasets-nyuv2-v030
 ```
