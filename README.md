@@ -90,7 +90,7 @@ There are subsection for different things to do:
     cd EMSANet
 
     # dataset package
-    pip install -e ./lib/nicr-scene-analysis-datasets
+    pip install -e ./lib/nicr-scene-analysis-datasets[with_preparation]
 
     # multitask scene analysis package
     pip install -e ./lib/nicr-multitask-scene-analysis
