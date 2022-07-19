@@ -1,5 +1,8 @@
 # EMSANet: Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments
 
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/efficient-multi-task-rgb-d-scene-analysis-for/semantic-segmentation-on-nyu-depth-v2)](https://paperswithcode.com/sota/semantic-segmentation-on-nyu-depth-v2?p=efficient-multi-task-rgb-d-scene-analysis-for)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/efficient-multi-task-rgb-d-scene-analysis-for/semantic-segmentation-on-sun-rgbd)](https://paperswithcode.com/sota/semantic-segmentation-on-sun-rgbd?p=efficient-multi-task-rgb-d-scene-analysis-for)
+
 This repository contains the code to our paper "EMSANet: Efficient Multi-Task 
 RGB-D Scene Analysis for Indoor Environments" ([arXiv](https://arxiv.org/pdf/2207.04526.pdf))
 
