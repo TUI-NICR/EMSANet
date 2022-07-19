@@ -1,0 +1,6 @@
+[submodule "lib/nicr-multitask-scene-analysis"]
+	path = lib/nicr-multitask-scene-analysis
+	url = https://github.com/TUI-NICR/nicr-multitask-scene-analysis
+[submodule "lib/nicr-scene-analysis-datasets"]
+	path = lib/nicr-scene-analysis-datasets
+	url = https://github.com/TUI-NICR/nicr-scene-analysis-datasets

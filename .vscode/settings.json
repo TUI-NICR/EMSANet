@@ -1,0 +1,15 @@
+{
+    "python.testing.pytestArgs": [
+        "."
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.linting.pycodestyleEnabled": true,
+    "python.linting.enabled": true,
+    // disable annoying top-level source code modification indication
+    "gitlens.codeLens.authors.enabled": false,
+    "gitlens.codeLens.recentChange.enabled": false,
+    "[markdown]": {
+        "files.trimTrailingWhitespace": false
+    },
+}

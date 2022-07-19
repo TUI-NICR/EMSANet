@@ -1,0 +1,105 @@
+stages:
+  - stylecheck
+  - test
+  - deploy
+
+.conda_env: &conda_env
+    before_script:
+        # update conda
+        - conda config --set always_yes yes
+        - conda update -q conda
+
+        # create and activate environment
+        - conda create -q -n testenv_${CI_JOB_ID}_py${PYTHON_VERSION_TO_USE//./} python=${PYTHON_VERSION_TO_USE} pip
+        - source activate testenv_${CI_JOB_ID}_py${PYTHON_VERSION_TO_USE//./}
+
+    after_script:
+        # remove environment
+        - conda env remove --name testenv_${CI_JOB_ID}_py${PYTHON_VERSION_TO_USE//./}
+
+.test_template: &test_template
+    <<: *conda_env
+    stage: test
+    rules:
+        - if: $CI_MERGE_REQUEST_TITLE =~ /^(Draft:|WIP:|\[Draft\]|\[WIP\])/
+          when: manual
+        - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TITLE !~ /^(Draft:|WIP:|\[Draft\]|\[WIP\])/
+        - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+        - if: $CI_PIPELINE_SOURCE == "schedule"
+    # parallel: 1
+    script:
+        # install packages (use conda to avoid time-consuming installations)
+        - conda install -q pytest pytest-cov
+        - pip install -q pytest-html
+        - pip install pytest-xdist    # multiple workers for pytest (-n 2 below)
+
+        # install dependencies
+        - conda install 'protobuf<=3.19.1'    # for onnx
+        - conda install pytorch=1.10.0 torchvision=0.11.1 cudatoolkit=11.3 -c pytorch
+        - pip install 'opencv-python>=4.2.0.34'
+        - pip install wandb==0.12.9
+        - pip install onnx==1.11.0
+        - pip install tui_imagenet==0.1.0
+        - pip install tui-slurm==0.7.6
+        - pip install git+https://github.com/cocodataset/panopticapi.git
+        - pip install pycocotools==2.0.2
+        - pip install torchmetrics==0.6.2
+
+        # install packages (and all missing dependencies)
+        - pip install --editable lib/nicr-scene-analysis-datasets[test]
+        - pip install --editable lib/nicr-multitask-scene-analysis[test]
+
+        # check conda installation
+        - conda info
+        - conda list
+        - pip list
+
+        # run test
+        - py.test ./emsanet/tests -vv -rx -s --maxfail=4 --ff
+
+style_check:
+    <<: *conda_env
+    stage: stylecheck
+    rules:
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+        - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+        - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    variables:
+        PYTHON_VERSION_TO_USE: "3.8"
+    script:
+        # install packages
+        - conda install -q pycodestyle pylint
+
+        # check style using pep8
+        - find ./ -name "*.py" -not -path "*/lib/*" | xargs pycodestyle --show-source --show-pep8
+
+        # check style using pylint (without taking into account)
+        - pylint ./ --rcfile=${CI_PROJECT_DIR}/.pylintrc || true
+
+tests_py36:
+    <<: *test_template
+    variables:
+        PYTHON_VERSION_TO_USE: "3.6"
+        REPORT_COVERAGE: "false"
+        GIT_SUBMODULE_STRATEGY: recursive
+
+tests_py37:
+    <<: *test_template
+    variables:
+        PYTHON_VERSION_TO_USE: "3.7"
+        REPORT_COVERAGE: "false"
+        GIT_SUBMODULE_STRATEGY: recursive
+
+tests_py38:
+    <<: *test_template
+    variables:
+        PYTHON_VERSION_TO_USE: "3.8"
+        REPORT_COVERAGE: "true"
+        GIT_SUBMODULE_STRATEGY: recursive
+
+tests_py39:
+    <<: *test_template
+    variables:
+        PYTHON_VERSION_TO_USE: "3.9"
+        REPORT_COVERAGE: "false"
+        GIT_SUBMODULE_STRATEGY: recursive

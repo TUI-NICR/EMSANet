@@ -1,0 +1,61 @@
+_BASE_: Base-PanopticDeepLab-OS16.yaml
+MODEL:
+  WEIGHTS: "detectron2://DeepLab/R-52.pkl"
+  PIXEL_MEAN: [123.675, 116.280, 103.530]
+  PIXEL_STD: [58.395, 57.120, 57.375]
+  BACKBONE:
+    NAME: "build_resnet_deeplab_backbone"
+  RESNETS:
+    DEPTH: 50
+    NORM: "BN"
+    RES5_MULTI_GRID: [1, 2, 4]
+    STEM_TYPE: "deeplab"
+    STEM_OUT_CHANNELS: 128
+    STRIDE_IN_1X1: False
+  SEM_SEG_HEAD:
+    NUM_CLASSES: 40
+    LOSS_TOP_K: 1.0
+    LOSS_WEIGHT: 5.0
+    USE_DEPTHWISE_SEPARABLE_CONV: True
+  PANOPTIC_DEEPLAB:
+    STUFF_AREA: 4096
+    NMS_KERNEL: 17
+    SIZE_DIVISIBILITY: 160
+    TOP_K_INSTANCE: 64
+    USE_DEPTHWISE_SEPARABLE_CONV: True
+  INS_EMBED_HEAD:
+    NAME: "PanopticDeepLabInsEmbedHead"
+    IN_FEATURES: ["res2", "res3", "res5"]
+    PROJECT_FEATURES: ["res2", "res3"]
+    PROJECT_CHANNELS: [32, 64]
+    ASPP_CHANNELS: 256
+    ASPP_DILATIONS: [6, 12, 18]
+    ASPP_DROPOUT: 0.1
+    HEAD_CHANNELS: 32
+    CONVS_DIM: 128
+    COMMON_STRIDE: 4
+    NORM: "BN"
+    CENTER_LOSS_WEIGHT: 20.0
+    OFFSET_LOSS_WEIGHT: 0.1
+DATASETS:
+  TRAIN: ("nyuv2_train",)
+  TEST: ("nyuv2_test",)
+SOLVER:
+  MAX_ITER: 200000
+  IMS_PER_BATCH: 8
+  OPTIMIZER: "SGD"
+  BASE_LR: 0.005
+  LR_SCHEDULER_NAME: "WarmupPolyLR"
+  WARMUP_ITERS: 0
+INPUT:
+  FORMAT: "RGB"
+  GAUSSIAN_SIGMA: 8
+  MIN_SIZE_TRAIN: !!python/object/apply:eval ["[int(x * 0.01 * 480) for x in range(100, 131)]"]
+  MIN_SIZE_TRAIN_SAMPLING: "choice"
+  MIN_SIZE_TEST: 480
+  MAX_SIZE_TRAIN: 640
+  MAX_SIZE_TEST: 640
+  CROP:
+    ENABLED: True
+    TYPE: "absolute"
+    SIZE: (480, 640)
