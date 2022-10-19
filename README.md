@@ -10,7 +10,7 @@
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/efficient-multi-task-rgb-d-scene-analysis-for/scene-classification-unified-classes-on-sun)](https://paperswithcode.com/sota/scene-classification-unified-classes-on-sun?p=efficient-multi-task-rgb-d-scene-analysis-for)
 
 This repository contains the code to our paper "EMSANet: Efficient Multi-Task 
-RGB-D Scene Analysis for Indoor Environments" ([arXiv](https://arxiv.org/pdf/2207.04526.pdf))
+RGB-D Scene Analysis for Indoor Environments" ([IEEE Xplore](https://ieeexplore.ieee.org/document/9892852), [arXiv](https://arxiv.org/pdf/2207.04526.pdf))
 
 Our efficient multi-task approach for RGB-D scene analysis (EMSANet) 
 simultaneously performs semantic and instance segmentation (panoptic 
@@ -32,14 +32,25 @@ paper ([arXiv](https://arxiv.org/pdf/2207.04526.pdf)):
 
 > Seichter, D., Fischedick, B., Köhler, M., Gross, H.-M.
 *Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments*,
-to appear in IEEE International Joint Conference on Neural Networks (IJCNN), 2022.
+in IEEE International Joint Conference on Neural Networks (IJCNN), pp. 1-10, 2022.
 
 ```bibtex
+@inproceedings{emsanet2022ijcnn,
+  title={Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments},
+  author={Seichter, Daniel and Fischedick, S{\"o}hnke and K{\"o}hler, Mona and Gross, Horst-Michael},
+  booktitle={IEEE International Joint Conference on Neural Networks (IJCNN)},
+  year={2022},
+  volume={},
+  number={},
+  pages={1-10},
+  doi={10.1109/IJCNN55064.2022.9892852}
+}
+
 @article{emsanet2022,
-title={Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments},
-author={Seichter, Daniel and Fischedick, S{\"o}hnke and K{\"o}hler, Mona and Gross, Horst-Michael},
-journal={arXiv preprint arXiv:2207.04526},
-year={2022}
+  title={Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments},
+  author={Seichter, Daniel and Fischedick, S{\"o}hnke and K{\"o}hler, Mona and Gross, Horst-Michael},
+  journal={arXiv preprint arXiv:2207.04526},
+  year={2022}
 }
 ```
 Note that the preprint was accepted to be published in IEEE International Joint 
@@ -48,8 +59,8 @@ Conference on Neural Networks (IJCNN) 2022.
 
 ## Content
 There are subsection for different things to do:
-- [Installation](#installationn): Set up the environment.
-- [Results & Weights](#results-weights): Overview about major results and pretrained network weights.
+- [Installation](#installation): Set up the environment.
+- [Results & Weights](#results--weights): Overview about major results and pretrained network weights.
 - [Evaluation](#evaluation): Reproduce results reported in our paper.
 - [Inference](#inference): Apply trained models.
     - [Dataset Inference](#dataset-inference): Apply trained model to samples from dataset.
