@@ -28,7 +28,7 @@ The source code is published under Apache 2.0 license, see
 [license file](LICENSE) for details.
 
 If you use the source code or the network weights, please cite the following 
-paper ([arXiv](https://arxiv.org/pdf/2207.04526.pdf)):
+paper ([IEEE Xplore](https://ieeexplore.ieee.org/document/9892852), [arXiv](https://arxiv.org/pdf/2207.04526.pdf)):
 
 > Seichter, D., Fischedick, B., Köhler, M., Gross, H.-M.
 *Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments*,
