@@ -71,7 +71,16 @@ There are subsection for different things to do:
 
 
 ## Installation
-1. Create conda environment and install all dependencies:
+1. Clone repository:
+    ```bash
+    # do not forget the '--recursive' ;)
+    git clone --recursive https://github.com/TUI-NICR/EMSANet
+
+    # navigate to the cloned directory (required for installing some dependencies and to run the scripts later)
+    cd EMSANet
+    ```
+
+2. Create conda environment and install all dependencies:
     ```bash
     # option 1: create conda environment from provided YAML file with PyTorch 1.10 (original publication)
     # note that this environment does not include detectron2 that is required for ./external
@@ -110,14 +119,8 @@ There are subsection for different things to do:
     python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
     ```
 
-2. Clone repository and install submodule packages:
+3. Install submodule packages:
     ```bash
-    # do not forget the '--recursive' ;)
-    git clone --recursive https://github.com/TUI-NICR/EMSANet
-
-    # navigate to the cloned directory (required for installing some dependencies and to run the scripts later)
-    cd EMSANet
-
     # dataset package
     python -m pip install -e ./lib/nicr-scene-analysis-datasets[withpreparation]
 
@@ -125,7 +128,7 @@ There are subsection for different things to do:
     python -m pip install -e ./lib/nicr-multitask-scene-analysis
     ```
 
-3. Prepare datasets:
+4. Prepare datasets:
     We trained our networks on
     [NYUv2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html),
     [SUNRGB-D](https://rgbd.cs.princeton.edu/), and [Hypersim](nicr_scene_analysis_datasets/datasets/hypersim).
