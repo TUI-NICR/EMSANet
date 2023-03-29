@@ -8,7 +8,7 @@ from torch import nn
 
 from nicr_mt_scene_analysis.loss.ce import CrossEntropyLossSemantic
 
-device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+DEVICE = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
 
 # copied from: https://github.com/TUI-NICR/ESANet/blob/main/src/utils.py#L18-L50
@@ -66,21 +66,21 @@ def test_loss():
 
     # loss object from new loss implementation
     loss_object = CrossEntropyLossSemantic(
-        weights=class_weights.to(device),
+        weights=class_weights.to(DEVICE),
         label_smoothing=0.0,
         weighted_reduction=True
     )
 
     # loss object from old loss implementation
     loss_object_previous = CrossEntropyLossPrevious(
-        device=device,
+        device=DEVICE,
         weight=class_weights
     )
 
     # generate random prediction and target
     pred = tuple(
         torch.rand(size=(2, 40, int(480 / (2 ** i)), int(640 / (2 ** i))),
-                   device=device)
+                   device=DEVICE)
         for i in [0, 3, 4, 5]
     )
 
@@ -88,7 +88,7 @@ def test_loss():
         torch.randint(size=(2, int(480 / (2 ** i)), int(640 / (2 ** i))),
                       low=0,
                       high=40,
-                      device=device)
+                      device=DEVICE)
         for i in [0, 3, 4, 5]
     )
 

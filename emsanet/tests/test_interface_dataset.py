@@ -43,7 +43,7 @@ def test_data_helper(dataset):
 
 def test_data_caching():
     """Test dataset caching"""
-    dataset = "nyuv2"
+    dataset = 'nyuv2'
     dataset_path = DATASET_PATH_DICT[dataset]
     n_worksers = 4
 

@@ -18,13 +18,29 @@ from emsanet.data import get_datahelper
 from emsanet.model import EMSANet
 from emsanet.preprocessing import get_preprocessor
 from emsanet.visualization import visualize_predictions
+from emsanet.weights import load_weights
 
 
 def _get_args():
     parser = ArgParserEMSANet()
 
     # add additional arguments
-    parser.add_argument(
+    group = parser.add_argument_group('Inference')
+    group.add_argument(    # useful for appm context module
+        '--inference-input-height',
+        type=int,
+        default=480,
+        dest='validation_input_height',    # used in test phase
+        help="Network input height for predicting on inference data."
+    )
+    group.add_argument(    # useful for appm context module
+        '--inference-input-width',
+        type=int,
+        default=640,
+        dest='validation_input_width',    # used in test phase
+        help="Network input width for predicting on inference data."
+    )
+    group.add_argument(
         '--depth-max',
         type=float,
         default=None,
@@ -32,19 +48,14 @@ def _get_args():
              "they are most likely not valid. Note, this clipping is applied "
              "before scaling the depth values."
     )
-    parser.add_argument(
+    group.add_argument(
         '--depth-scale',
         type=float,
         default=1.0,
         help="Additional depth scaling factor to apply."
     )
 
-    args = parser.parse_args()
-
-    # this makes sure that visualization works
-    args.visualize_validation = True
-
-    return args
+    return parser.parse_args()
 
 
 def _load_img(fp):
@@ -67,10 +78,12 @@ def main():
     model = EMSANet(args, dataset_config=dataset_config)
 
     # load weights
+    print(f"Loading checkpoint: '{args.weights_filepath}'")
     checkpoint = torch.load(args.weights_filepath)
     state_dict = checkpoint['state_dict']
-    model.load_state_dict(state_dict, strict=True)
-    print(f"Loading checkpoint: '{args.weights_filepath}'")
+    if 'epoch' in checkpoint:
+        print(f"-> Epoch: {checkpoint['epoch']}")
+    load_weights(args, model, state_dict, verbose=True)
 
     torch.set_grad_enabled(False)
     model.eval()
@@ -112,38 +125,63 @@ def main():
         batch = move_batch_to_device(batch, device=device)
 
         # apply model
-        prediction = model(batch, do_postprocessing=True)
+        predictions = model(batch, do_postprocessing=True)
 
         # visualize predictions
-        prediction_visualization = visualize_predictions(
-            prediction,
-            batch,
-            dataset_config
+        preds_viz = visualize_predictions(
+            predictions=predictions,
+            batch=batch,
+            dataset_config=dataset_config
         )
 
         # show results
-        fig, axs = plt.subplots(2, 4, figsize=(12, 6), dpi=150)
+        _, axs = plt.subplots(2, 4, figsize=(12, 6), dpi=150)
         [ax.set_axis_off() for ax in axs.ravel()]
-        axs[0, 0].set_title('rgb')
-        axs[0, 0].imshow(img_rgb)
-        axs[0, 1].set_title('depth')
-        axs[0, 1].imshow(img_depth)
-        axs[0, 2].set_title('semantic')
-        axs[0, 2].imshow(prediction_visualization['semantic'][0])
-        axs[0, 3].set_title('panoptic')
-        axs[0, 3].imshow(prediction_visualization['panoptic'][0])
-        axs[1, 0].set_title('instance')
-        axs[1, 0].imshow(prediction_visualization['instance'][0])
-        axs[1, 1].set_title('instance center')
-        axs[1, 1].imshow(prediction_visualization['instance_center'][0])
-        axs[1, 2].set_title('instance offset')
-        axs[1, 2].imshow(prediction_visualization['instance_offset'][0])
-        axs[1, 3].set_title('panoptic with orientation')
-        axs[1, 3].imshow(prediction_visualization['panoptic_orientation'][0])
 
-        plt.suptitle(f"Image: ({os.path.basename(fp_rgb)}, "
-                     f"{os.path.basename(fp_depth)}), "
-                     f"Model: {args.weights_filepath}")
+        axs[0, 0].set_title('RGB')
+        axs[0, 0].imshow(
+            img_rgb
+        )
+        axs[0, 1].set_title('Depth')
+        axs[0, 1].imshow(
+            img_depth,
+            interpolation='nearest'
+        )
+        axs[0, 2].set_title('Semantic')
+        axs[0, 2].imshow(
+            preds_viz['semantic_segmentation_idx_fullres'][0],
+            interpolation='nearest'
+        )
+        axs[0, 3].set_title('Semantic (panoptic)')
+        axs[0, 3].imshow(
+            preds_viz['panoptic_segmentation_deeplab_semantic_idx_fullres'][0],
+            interpolation='nearest'
+        )
+        axs[1, 0].set_title('Instance (panoptic)')
+        axs[1, 0].imshow(
+            preds_viz['panoptic_segmentation_deeplab_instance_idx_fullres'][0],
+            interpolation='nearest'
+        )
+        axs[1, 1].set_title('Instance centers')
+        axs[1, 1].imshow(
+            preds_viz['instance_centers'][0]
+        )
+        axs[1, 2].set_title('Instance offsets')
+        axs[1, 2].imshow(
+            preds_viz['instance_offsets'][0]
+        )
+        axs[1, 3].set_title('Panoptic (with orientations)')
+        axs[1, 3].imshow(
+            preds_viz['panoptic_orientations_fullres'][0],
+            interpolation='nearest'
+        )
+
+        plt.suptitle(
+            f"Image: ({os.path.basename(fp_rgb)}, "
+            f"{os.path.basename(fp_depth)}), "
+            f"Model: {args.weights_filepath}, "
+            f"Scene: {preds_viz['scene'][0]}"
+        )
         plt.tight_layout()
 
         # fp = os.path.join('./', 'samples', f'result_{args.dataset}.png')

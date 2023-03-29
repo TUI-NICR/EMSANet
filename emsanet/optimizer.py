@@ -5,13 +5,15 @@
 from typing import Union
 
 from torch.optim import Adam
+from torch.optim import AdamW
+from torch.optim import RAdam
 from torch.optim import SGD
 
 
-KNOWN_OPTIMIZERS = ('sgd', 'adam')
+KNOWN_OPTIMIZERS = ('adam', 'adamw', 'radam', 'sgd')
 
 
-OptimizerType = Union[Adam, SGD]
+OptimizerType = Union[Adam, AdamW, RAdam, SGD]
 
 
 def get_optimizer(args, parameters) -> OptimizerType:
@@ -38,6 +40,20 @@ def get_optimizer(args, parameters) -> OptimizerType:
             lr=lr,
             weight_decay=weight_decay,
             betas=(0.9, 0.999)
+        )
+    elif 'adamw' == args.optimizer:
+        optimizer = AdamW(
+            parameters,
+            lr=lr,
+            weight_decay=weight_decay,
+            betas=(0.9, 0.999)
+        )
+    elif 'radam' == args.optimizer:
+        optimizer = RAdam(
+            parameters,
+            lr=lr,
+            betas=(0.9, 0.999),
+            weight_decay=weight_decay,
         )
 
     return optimizer

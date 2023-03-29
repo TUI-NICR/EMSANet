@@ -23,6 +23,7 @@ from emsanet.args import ArgParserEMSANet
 from emsanet.data import get_datahelper
 from emsanet.model import EMSANet
 from emsanet.preprocessing import get_preprocessor
+from emsanet.weights import load_weights
 
 
 PQ_TEST_WEIGHT_DICT = {
@@ -61,7 +62,7 @@ def test_compare_pq_with_panopticapi(tmp_path, dataset):
     model = model.to(torch.device('cpu'))
 
     checkpoint = torch.load(PQ_TEST_WEIGHT_DICT[dataset])
-    model.load_state_dict(checkpoint['state_dict'], strict=True)
+    load_weights(args, model, checkpoint['state_dict'])
     model.eval()
 
     # set preprocessor to datasets (note, preprocessing depends on model)
