@@ -20,27 +20,27 @@ def model_test(tasks,
                activation,
                do_postprocessing,
                training,
-               tmp_path):
+               tmp_path,
+               additional_args=[]):
+
     parser = ArgParserEMSANet()
-    args = parser.parse_args('', verbose=False)
+    args = parser.parse_args([
+        '--input-modalities', *modalities,
+        '--tasks', *tasks,
+        '--encoder-decoder-fusion', 'add-rgb' if len(modalities) > 1 else 'add',
+        '--rgb-encoder-backbone', backbone,
+        '--depth-encoder-backbone', backbone,
+        '--no-pretrained-backbone',
+        '--activation', activation,
+        '--dataset', 'nyuv2',
+        *additional_args
+    ], verbose=False)
 
     # replace some args
-    args.tasks = tasks
-    args.input_modalities = modalities
-    args.rgb_encoder_backbone = backbone
-    args.depth_encoder_backbone = backbone
-    args.activation = activation
     args.enable_panoptic = panoptic_enabled
-    args.no_pretrained_backbone = True
-    args.dataset = 'nyuv2'    # this dataset has all tasks
-    args.dataset_path = None
 
     dataset = get_dataset(args, split='train')
     dataset_config = dataset.config
-
-    # set suitable fusion
-    if 'rgb' not in modalities:
-        args.encoder_decoder_fusion = 'add-depth'
 
     # create model
     model = EMSANet(args, dataset_config=dataset_config)
@@ -148,4 +148,25 @@ def test_model_panoptic(tasks, do_postprocessing, training, tmp_path):
         do_postprocessing=do_postprocessing,
         training=training,
         tmp_path=tmp_path
+    )
+
+
+@pytest.mark.parametrize('do_postprocessing', (False, True))
+@pytest.mark.parametrize('training', (False, True))
+def test_model_less_downsampling_skips(do_postprocessing, training, tmp_path):
+    """Test EMSANet model with less downsampling and less skip connections"""
+    model_test(
+        tasks=('semantic', 'instance'),
+        panoptic_enabled=True,
+        modalities=('rgb', 'depth'),
+        backbone='resnet18-d16',
+        activation='relu',
+        do_postprocessing=do_postprocessing,
+        training=training,
+        tmp_path=tmp_path,
+        additional_args=[
+            '--semantic-decoder-n-blocks', '1',
+            '--instance-decoder-n-blocks', '1',
+            '--encoder-decoder-skip-downsamplings', '4', '8',
+        ]
     )

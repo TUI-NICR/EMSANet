@@ -30,28 +30,45 @@ from emsanet.data import get_datahelper
 from emsanet.data import get_dataset
 from emsanet.preprocessing import get_preprocessor
 from emsanet.visualization import visualize
+from emsanet.weights import load_weights
 
 
 def _parse_args():
     parser = ArgParserEMSANet()
-
+    group = parser.add_argument_group('Inference Timing')
     # add arguments
     # general
-    parser.add_argument(
+    group.add_argument(
         '--model-onnx-filepath',
         type=str,
         default=None,
         help="Path to ONNX model file when `model` is 'onnx'."
     )
 
+    # input
+    group.add_argument(    # useful for appm context module
+        '--inference-input-height',
+        type=int,
+        default=480,
+        dest='validation_input_height',    # used in test phase
+        help="Network input height for predicting on inference data."
+    )
+    group.add_argument(    # useful for appm context module
+        '--inference-input-width',
+        type=int,
+        default=640,
+        dest='validation_input_width',    # used in test phase
+        help="Network input width for predicting on inference data."
+    )
+
     # runs
-    parser.add_argument(
+    group.add_argument(
         '--n-runs',
         type=int,
         default=100,
         help="Number of runs the inference time will be measured."
     )
-    parser.add_argument(
+    group.add_argument(
         '--n-runs-warmup',
         type=int,
         default=10,
@@ -60,19 +77,19 @@ def _parse_args():
              "are slower."
     )
     # timings
-    parser.add_argument(
+    group.add_argument(
         '--no-time-pytorch',
         action='store_true',
         default=False,
         help="Do not measure inference time using PyTorch."
     )
-    parser.add_argument(
+    group.add_argument(
         '--no-time-tensorrt',
         action='store_true',
         default=False,
         help="Do not measure inference time using TensorRT."
     )
-    parser.add_argument(
+    group.add_argument(
         '--with-postprocessing',
         action='store_true',
         default=False,
@@ -80,59 +97,60 @@ def _parse_args():
     )
 
     # plots / export
-    parser.add_argument(
+    group.add_argument(
         '--plot-timing',
         action='store_true',
         default=False,
         help="Whether to plot the inference times for each forward pass."
     )
-    parser.add_argument(
+    group.add_argument(
         '--export-outputs',
         action='store_true',
         default=False,
-        help="Whether to export the outputs of the model."
+        help="Whether to export the outputs of the model. Outputs are written "
+             "to: [PATH_TO_THIS_FILE]/inference_results/"
     )
 
     # tensorrt
-    parser.add_argument(
+    group.add_argument(
         '--trt-workspace',
         type=int,
         default=2 << 30,
         help="Maximum workspace size, default equals 2GB."
     )
-    parser.add_argument(
+    group.add_argument(
         '--trt-floatx',
         type=int,
         choices=(16, 32),
         default=32,
         help="Whether to measure with float16 or float32."
     )
-    parser.add_argument(
+    group.add_argument(
         '--trt-batchsize',
         type=int,
         default=1,
         help="Batchsize to use."
     )
-    parser.add_argument(
+    group.add_argument(
         '--trt-onnx-opset-version',
         type=int,
-        default=10,
+        default=11,
         help="Opset version to use for export."
     )
-    parser.add_argument(
+    group.add_argument(
         '--trt-do-not-force-rebuild',
         dest='trt_force_rebuild',
         action='store_false',
         default=True,
         help="Reuse existing TensorRT engine."
     )
-    parser.add_argument(
+    group.add_argument(
         '--trt-enable-dynamic-batch-axis',
         action='store_true',
         default=False,
         help="Enable dynamic axes."
     )
-    parser.add_argument(
+    group.add_argument(
         '--trt-onnx-export-only',
         action='store_true',
         default=False,
@@ -140,9 +158,16 @@ def _parse_args():
              "use '--model-onnx-filepath ./model_tensorrt.onnx' in a second "
              "run."
     )
+    group.add_argument(
+        '--trt-use-get-engine-v2',
+        action='store_true',
+        default=False,
+        help="Use get_engine_v2 that does not require onnx2trt instead of "
+             "previous get_engine, as onnx2trt is not available any longer "
+             "and also not required any longer."
+    )
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def get_engine(onnx_filepath,
@@ -150,7 +175,8 @@ def get_engine(onnx_filepath,
                trt_floatx=16,
                trt_batchsize=1,
                trt_workspace=2 << 30,
-               force_rebuild=True):
+               force_rebuild=True,
+               **kwargs):
     # note that we use onnx2trt from TensorRT Open Source Software Components
     # to convert ONNX files to TensorRT engines
     if not os.path.exists(engine_filepath) or force_rebuild:
@@ -177,6 +203,58 @@ def get_engine(onnx_filepath,
             print("onnx2trt failed:", e.returncode, e.output)
             raise
         print(out)
+
+    print(f"Loading engine: {engine_filepath}")
+    with open(engine_filepath, "rb") as f, \
+            trt.Runtime(trt.Logger(trt.Logger.WARNING)) as runtime:
+        return runtime.deserialize_cuda_engine(f.read())
+
+
+def get_engine_v2(onnx_filepath,
+                  engine_filepath,
+                  trt_floatx=16,
+                  trt_batchsize=1,
+                  trt_workspace=2 << 30,     # 2GB
+                  force_rebuild=True,
+                  verbose=True):
+    # using onnx2trt from TensorRT Open Source Software Components is no
+    # longer necessary
+    if not os.path.exists(engine_filepath) or force_rebuild:
+        print("Building engine ...")
+        if trt_floatx == 32:
+            print("... this may take a while")
+        else:
+            print("... this may take -> AGES <-")
+
+        logger = trt.Logger(trt.Logger.WARNING)
+        if verbose:
+            logger.min_severity = trt.Logger.VERBOSE
+
+        # see: https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/index.html#explicit-implicit-batch
+        # explicit: batch size is part of the network definition -> BC01
+        # implicit [DEPRECATED]: batch size is not part -> B01
+        network_creation_flag = \
+            (1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))
+
+        with trt.Builder(logger) as builder:
+            builder.max_batch_size = trt_batchsize
+
+            config = builder.create_builder_config()
+            config.max_workspace_size = trt_workspace
+
+            if builder.platform_has_fast_fp16 and 16 == trt_floatx:
+                config.set_flag(trt.BuilderFlag.FP16)
+
+        with builder.create_network(network_creation_flag) as network:
+            with trt.OnnxParser(network, logger) as parser:
+                # load onnx model
+                parser.parse_from_file(onnx_filepath)
+
+                for i in range(parser.num_errors):
+                    print(trt.ParserError.desc(parser.get_error(i)))
+
+        # create engine
+        return builder.build_engine(network, config)
 
     print(f"Loading engine: {engine_filepath}")
     with open(engine_filepath, "rb") as f, \
@@ -271,6 +349,7 @@ def time_inference_pytorch(model,
 
 def time_inference_tensorrt(onnx_filepath,
                             inputs,
+                            use_get_engine_v2=False,
                             trt_floatx=16,
                             trt_batchsize=1,
                             trt_workspace=2 << 30,
@@ -278,15 +357,18 @@ def time_inference_tensorrt(onnx_filepath,
                             force_tensorrt_engine_rebuild=True,
                             postprocessors=None,
                             postprocessors_device='cpu',
-                            store_outputs=False):
+                            store_outputs=False,
+                            debug=False):
     # create engine
     trt_filepath = os.path.splitext(onnx_filepath)[0] + '.trt'
 
-    engine = get_engine(onnx_filepath, trt_filepath,
-                        trt_floatx=trt_floatx,
-                        trt_batchsize=trt_batchsize,
-                        trt_workspace=trt_workspace,
-                        force_rebuild=force_tensorrt_engine_rebuild)
+    get_engine_ = get_engine_v2 if use_get_engine_v2 else get_engine
+    engine = get_engine_(onnx_filepath, trt_filepath,
+                         trt_floatx=trt_floatx,
+                         trt_batchsize=trt_batchsize,
+                         trt_workspace=trt_workspace,
+                         force_rebuild=force_tensorrt_engine_rebuild,
+                         verbose=debug)
     context = engine.create_execution_context()
 
     # allocate memory on gpu
@@ -306,7 +388,8 @@ def time_inference_tensorrt(onnx_filepath,
             cuda.memcpy_htod(in_bind.gpu, input_[key].numpy())
 
         # model forward pass
-        context.execute(1, pointers)
+        # context.execute(batch_size=1, bindings=pointers)
+        context.execute_v2(bindings=pointers)
 
         # copy back to cpu
         for out_bind in output_bindings:
@@ -435,13 +518,17 @@ if __name__ == '__main__':
             img_rgb = np.random.randint(
                 low=0,
                 high=255,
-                size=(args.input_height, args.input_width, 3),
+                size=(
+                    args.validation_input_height, args.validation_input_width, 3
+                ),
                 dtype='uint8'
             )
             img_depth = np.random.randint(
                 low=0,
                 high=40000,
-                size=(args.input_height, args.input_width),
+                size=(
+                    args.validation_input_height, args.validation_input_width
+                ),
                 dtype='uint16'
             )
             # preprocess
@@ -453,7 +540,7 @@ if __name__ == '__main__':
             depth_images.append(torch.tensor(img_depth))
 
         # convert to input format (see BatchType)
-        if 2 == len(args.input_modalities):
+        if 2 == len(args.input_modalities) or 'rgbd' in args.input_modalities:
             inputs = [{'rgb': rgb_images[i], 'depth': depth_images[i]}
                       for i in range(len(rgb_images))]
         elif 'rgb' in args.input_modalities:
@@ -477,11 +564,10 @@ if __name__ == '__main__':
     if args.weights_filepath is not None:
         checkpoint = torch.load(args.weights_filepath,
                                 map_location=lambda storage, loc: storage)
-        try:
-            model.load_state_dict(checkpoint['state_dict'], strict=True)
-        except RuntimeError as e:
-            print("Load with strict=False due to", e)
-            model.load_state_dict(checkpoint['state_dict'], strict=False)
+        print(f"Loading checkpoint: '{args.weights_filepath}'.")
+        if 'epoch' in checkpoint:
+            print(f"-> Epoch: {checkpoint['epoch']}")
+        load_weights(args, model, checkpoint['state_dict'])
     device = 'cuda' if torch.cuda.device_count() > 0 else 'cpu'
     model.eval()
 
@@ -510,14 +596,13 @@ if __name__ == '__main__':
             # we have to export the model to onnx
 
             # define dummy input for export
-            dummy_input = ({k: v for k, v in inputs[0].items()
-                            if k in args.input_modalities},
+            dummy_input = (inputs[0],
                            {'do_postprocessing': False})
 
             # define names for input and output graph nodes
             # note, meaningful names are required to match postprocessors and
             # to set up dynamic_axes dict correctly
-            input_names = list(args.input_modalities)    # does it always work?
+            input_names = [k for k in dummy_input[0].keys()]
 
             # determine output structure in order to derive names
             outputs = model(dummy_input[0], **dummy_input[1])
@@ -560,7 +645,7 @@ if __name__ == '__main__':
                               input_names=input_names,
                               output_names=output_names,
                               do_constant_folding=True,
-                              verbose=False,
+                              verbose=args.debug,
                               opset_version=args.trt_onnx_opset_version,
                               **kwargs)
             print(f"ONNX file (opset {args.trt_onnx_opset_version}) written "
@@ -583,6 +668,7 @@ if __name__ == '__main__':
         timings_tensorrt, outs_tensorrt = time_inference_tensorrt(
             onnx_filepath,
             inputs,
+            use_get_engine_v2=args.trt_use_get_engine_v2,
             trt_floatx=args.trt_floatx,
             trt_batchsize=args.trt_batchsize,
             trt_workspace=args.trt_workspace,
@@ -590,7 +676,8 @@ if __name__ == '__main__':
             force_tensorrt_engine_rebuild=args.trt_force_rebuild,
             postprocessors=postprocessors,
             postprocessors_device=device,
-            store_outputs=args.export_outputs
+            store_outputs=args.export_outputs,
+            debug=args.debug,
         )
 
         print(f'fps tensorrt: {np.mean(1/timings_tensorrt):0.4f} ± '
@@ -610,7 +697,7 @@ if __name__ == '__main__':
         plt.show()
 
     if args.export_outputs:
-        assert args.with_postprocessing
+        assert args.with_postprocessing, "Re-run with `--with-postprocessing`"
 
         if 'outs_pytorch' in locals():
             for inp, out in zip(inputs, outs_pytorch):

@@ -1,4 +1,4 @@
-name: multitask
+name: emsanet
 channels:
   - pytorch
   - defaults

@@ -2,7 +2,7 @@
 """
 .. codeauthor:: Soehnke Fischedick <soehnke-benedikt.fischedick@tu-ilmenau.de>
 .. codeauthor:: Daniel Seichter <daniel.seichter@tu-ilmenau.de>
-.. codeauthor:: Mona Koehler <moan.koehler@tu-ilmeanu.de>
+
 """
 import os
 
@@ -43,11 +43,12 @@ def decoders_test(args, do_postprocessing, training, tmp_path):
         instance_n_blocks=2,
         normal_n_blocks=1,
         scene_n_channels_in=512//2,
-        tasks=args.tasks,
-        fusion='add-rgb',
         fusion_n_channels=(256, 128, 64),
         debug=debug
     )
+
+    input_h, input_w = (480, 640)
+    downsampling_in = 32
 
     n_decoders = len(args.tasks)
 
@@ -68,32 +69,39 @@ def decoders_test(args, do_postprocessing, training, tmp_path):
 
     # set up inputs for decoders
     x = (
-        torch.rand(3, 512, 20, 15),    # output of context module
-        (torch.rand(3, 512//2, 1, 1),)     # at least one context branch (from GAP)
+        # output of context module
+        torch.rand(3, 512, input_h//downsampling_in, input_w//downsampling_in),
+        # at least one context branch (from GAP)
+        (torch.rand(3, 512//2, 1, 1),)
     )
-    skips_reversed = (
-        (torch.rand(3, 256, 40, 30), None),     # downsample: 16
-        (torch.rand(3, 128, 80, 60), None),    # downsample: 8
-        (torch.rand(3, 64, 160, 120), None),    # downsample: 4
-    )
+    # strings are used to prevent casting keys from int to tensor(int)
+    # while exporting to ONNX
+    skips = {
+            '16': {'rgb': torch.rand(3, 256, input_h//16, input_w//16),
+                   'depth': torch.rand(3, 256, input_h//16, input_w//16)},
+            '8': {'rgb': torch.rand(3, 128, input_h//8, input_w//8),
+                  'depth': torch.rand(3, 128, input_h//8, input_w//8)},
+            '4': {'rgb': torch.rand(3, 64, input_h//4, input_w//4),
+                  'depth': torch.rand(3, 64, input_h//4, input_w//4)},
+    }
     batch = {}
     if 'instance' in args.tasks:
         # pure instance segmentation task requires gt foreground mask
-        batch['instance_foreground'] = torch.ones((3, 480, 640),
+        batch['instance_foreground'] = torch.ones((3, input_h, input_w),
                                                   dtype=torch.bool)
     if 'orientation' in args.tasks:
         # orientation estimation requires a gt segmentation and foreground mask
-        batch['instance'] = torch.ones((3, 480, 640), dtype=torch.bool)
-        batch['orientation_foreground'] = torch.ones((3, 480, 640),
+        batch['instance'] = torch.ones((3, input_h, input_w), dtype=torch.bool)
+        batch['orientation_foreground'] = torch.ones((3, input_h, input_w),
                                                      dtype=torch.bool)
 
     if not training and do_postprocessing:
         # for inference postprocessing, inputs in full resolution are required
-        batch['rgb_fullres'] = torch.randn((3, 3, 480, 640))
-        batch['depth_fullres'] = torch.randn((3, 1, 480, 640))
+        batch['rgb_fullres'] = torch.randn((3, 3, input_h, input_w))
+        batch['depth_fullres'] = torch.randn((3, 1, input_h, input_w))
 
     # apply decoders
-    outputs = model(x, skips_reversed, batch,
+    outputs = model(x, skips, batch,
                     do_postprocessing=do_postprocessing)
 
     # perform some basic checks
@@ -124,15 +132,15 @@ def decoders_test(args, do_postprocessing, training, tmp_path):
     filename += '.onnx'
     filepath = os.path.join(tmp_path, filename)
     # export
-    x = (x, skips_reversed, batch, {'do_postprocessing': do_postprocessing})
+    x = (x, skips, batch, {'do_postprocessing': do_postprocessing})
     export_onnx_model(filepath, model, x)
 
 
 @pytest.mark.parametrize('enable_panoptic', (False, True))
 @pytest.mark.parametrize('do_postprocessing', (False, True))
 @pytest.mark.parametrize('training', (False, True))
-def test_decoders_full_mt(enable_panoptic, do_postprocessing, training,
-                          tmp_path):
+def test_decoders_full_mt_emsanet(enable_panoptic, do_postprocessing, training,
+                                  tmp_path):
     """Test EMSANet decoders in full mt setting"""
     parser = ArgParserEMSANet()
     args = parser.parse_args('', verbose=False)
@@ -141,6 +149,66 @@ def test_decoders_full_mt(enable_panoptic, do_postprocessing, training,
                   'normal',
                   'scene')
     args.enable_panoptic = enable_panoptic
+    decoders_test(args,
+                  do_postprocessing=do_postprocessing,
+                  training=training,
+                  tmp_path=tmp_path)
+
+
+@pytest.mark.parametrize('enable_panoptic', (False, True))
+@pytest.mark.parametrize('do_postprocessing', (False, True))
+@pytest.mark.parametrize('training', (False, True))
+def test_decoders_full_mt_segformermlp(enable_panoptic, do_postprocessing,
+                                       training, tmp_path):
+    """Test SegFormerMLP decoders in full mt setting"""
+    parser = ArgParserEMSANet()
+    args = parser.parse_args([
+        # semantic
+        '--semantic-decoder', 'segformermlp',
+        '--semantic-decoder-n-channels', '256', '128', '64', '64',
+        '--semantic-decoder-upsampling', 'bilinear',
+        '--semantic-encoder-decoder-fusion', 'select-rgb',
+        # instance
+        '--instance-decoder', 'segformermlp',
+        '--instance-decoder-n-channels', '256', '128', '64', '64',
+        '--instance-decoder-upsampling', 'bilinear',
+        '--instance-encoder-decoder-fusion', 'select-depth',  # test depth
+        # normal
+        '--normal-decoder', 'segformermlp',
+        '--normal-decoder-n-channels', '256', '128', '64', '64',
+        '--normal-decoder-upsampling', 'bilinear',
+        '--normal-encoder-decoder-fusion', 'select-rgb',
+    ], verbose=False)
+    args.tasks = ('semantic',
+                  'instance', 'orientation',
+                  'normal',
+                  'scene')
+    args.enable_panoptic = enable_panoptic
+    decoders_test(args,
+                  do_postprocessing=do_postprocessing,
+                  training=training,
+                  tmp_path=tmp_path)
+
+
+@pytest.mark.parametrize('do_postprocessing', (False, True))
+@pytest.mark.parametrize('training', (False, True))
+def test_decoders_panoptic_mixed(do_postprocessing, training, tmp_path):
+    """Test decoders in panoptic setting with mixed decoder types"""
+    parser = ArgParserEMSANet()
+    args = parser.parse_args([
+        # semantic
+        '--semantic-decoder', 'segformermlp',
+        '--semantic-decoder-n-channels', '256', '128', '64', '64',
+        '--semantic-decoder-upsampling', 'bilinear',
+        '--semantic-encoder-decoder-fusion', 'select-depth',  # test depth
+        # instance (= default args)
+        '--instance-decoder', 'emsanet',
+        '--instance-decoder-n-channels', '512', '256', '128',
+        '--instance-decoder-upsampling', 'learned-3x3-zeropad',
+        '--instance-encoder-decoder-fusion', 'add-rgb',
+        '--tasks', 'semantic', 'instance',
+        '--enable-panoptic',
+    ], verbose=False)
     decoders_test(args,
                   do_postprocessing=do_postprocessing,
                   training=training,

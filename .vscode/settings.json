@@ -1,6 +1,10 @@
 {
     "python.testing.pytestArgs": [
-        "."
+        "./emsanet/tests",
+        "-vvs",
+        // "--keep-files",   // enable this to keep the test files (see /tmp/pytest-of-userXY)
+        // "--force-onnx-export",  // enable this to force onnx export
+        // "--show-results",    // enable this to show results
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
@@ -12,4 +16,5 @@
     "[markdown]": {
         "files.trimTrailingWhitespace": false
     },
+    "cSpell.enabled": true,
 }

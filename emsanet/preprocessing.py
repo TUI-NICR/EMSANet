@@ -19,29 +19,72 @@ from nicr_mt_scene_analysis.data.preprocessing import PanopticTargetGenerator
 from nicr_mt_scene_analysis.data.preprocessing import RandomHSVJitter
 from nicr_mt_scene_analysis.data.preprocessing import RandomResize
 from nicr_mt_scene_analysis.data.preprocessing import Resize
+from nicr_mt_scene_analysis.data.preprocessing import SemanticClassMapper
 from nicr_mt_scene_analysis.data.preprocessing import ToTorchTensors
+
+from nicr_scene_analysis_datasets import ScanNet
 
 from torchvision.transforms import Compose
 
 from .data import DatasetType
+from .data import parse_datasets
 
 
 def get_preprocessor(
     args,
     dataset: DatasetType,
     phase: str,
-    multiscale_downscales: Optional[Tuple[int, ...]] = None
+    multiscale_downscales: Optional[Tuple[int, ...]] = None,
+    keep_raw_inputs=False
 ) -> Compose:
     assert phase in ('train', 'test')
 
     dataset_config = dataset.config
     sample_keys = dataset.sample_keys
 
-    if args.visualize_validation:
+    if args.visualize_validation or keep_raw_inputs:
         # clone raw inputs just to have them later for visualization
         transforms = [CloneEntries()]
     else:
         transforms = []
+
+    # check if ScanNet benchmark mode is enabled -> handle remapping
+    if 'test' == phase and args.validation_scannet_benchmark_mode:
+        # enable ScanNet benchmark mode for validation ONLY, i.e., mapping
+        # ignored classes to void (40 -> 20, 549 -> 200) to ignore them in
+        # metrics
+        assert args.scannet_semantic_n_classes in (40, 549)
+        if 40 == args.scannet_semantic_n_classes:
+            mapping = ScanNet.SEMANTIC_CLASSES_40_MAPPING_TO_BENCHMARK
+        else:
+            mapping = ScanNet.SEMANTIC_CLASSES_549_MAPPING_TO_BENCHMARK200
+        classes_to_ignore = tuple(
+            c_data
+            for c_data, c_benchmark in mapping.items()
+            if c_benchmark == 0 and c_data != 0     # ignore void
+        )
+        assert len(classes_to_ignore) in (40-20, 549-200)
+
+        transforms.append(
+            SemanticClassMapper(
+                classes_to_map=classes_to_ignore,
+                new_label=0,
+            )
+        )
+
+    # check if SUNRGB-D is combined as main dataset with NYUv2, ScanNet or
+    # Hypersim -> ignore last three classes (other*)
+    datasets = tuple(parse_datasets(args.dataset).keys())
+    if 'sunrgbd' == datasets[0]:
+        if any(d in ('nyuv2', 'hypersim', 'scannet') for d in datasets[1:]):
+            # map last three classes to void (ignore these classes in training/
+            # validation)
+            transforms.append(
+                SemanticClassMapper(
+                    classes_to_map=(38, 39, 40),
+                    new_label=0,
+                )
+            )
 
     # instance preprocessing
     if 'instance' in sample_keys:
@@ -105,8 +148,8 @@ def get_preprocessor(
             # resize input images to network input resolution
             transforms.append(
                 Resize(
-                    height=args.input_height,
-                    width=args.input_width,
+                    height=args.validation_input_height,
+                    width=args.validation_input_width,
                 )
             )
 
@@ -170,9 +213,9 @@ def get_preprocessor(
         )
 
     # default preprocessing
-    if 'rgb' in args.input_modalities:
+    if 'rgb' in args.input_modalities or 'rgbd' in args.input_modalities:
         transforms.append(NormalizeRGB())
-    if 'depth' in args.input_modalities:
+    if 'depth' in args.input_modalities or 'rgbd' in args.input_modalities:
         transforms.append(
             NormalizeDepth(
                 depth_mean=dataset_config.depth_stats.mean,
@@ -182,4 +225,10 @@ def get_preprocessor(
         )
     transforms.append(ToTorchTensors())
 
-    return Compose(transforms=transforms)
+    # stack all transforms into a single preprocessor object
+    preprocessor = Compose(transforms=transforms)
+
+    if args.debug:
+        print(f"Preprocessor for for phase: '{phase}':\n{preprocessor}")
+
+    return preprocessor
