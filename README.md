@@ -73,7 +73,7 @@ There are subsection for different things to do:
 ## Installation
 1. Clone repository:
     ```bash
-    # do not forget the '--recursive' ;)
+    # do not forget the '--recursive'
     git clone --recursive https://github.com/TUI-NICR/EMSANet
 
     # navigate to the cloned directory (required for installing some dependencies and to run the scripts later)
@@ -128,12 +128,13 @@ There are subsection for different things to do:
     python -m pip install -e ./lib/nicr-multitask-scene-analysis
     ```
 
-4. Prepare datasets:
-    We trained our networks on
-    [NYUv2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html),
-    [SUNRGB-D](https://rgbd.cs.princeton.edu/), and [Hypersim](nicr_scene_analysis_datasets/datasets/hypersim).
+4. Prepare datasets:  
+    We trained our networks on 
+    [NYUv2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html), 
+    [SUNRGB-D](https://rgbd.cs.princeton.edu/), and 
+    [Hypersim](https://machinelearning.apple.com/research/hypersim). 
 
-    Please follow the instructions given in `./lib/nicr-scene-analysis-datasets` or [HERE](https://github.com/TUI-NICR/nicr-scene-analysis-datasets/tree/ca73dc8f4976647fbd1c2da54ca7a31ccd1bea98) to prepare the datasets.
+    Please follow the instructions given in `./lib/nicr-scene-analysis-datasets` or [HERE](https://github.com/TUI-NICR/nicr-scene-analysis-datasets/tree/v0.5.3) to prepare the datasets. 
     In the following, we assume that they are stored at `./datasets`
 
 
