@@ -182,6 +182,8 @@ the tasks the model was trained on.
 during panoptic merging that was fixed along with preparing the code for the
 release. However, the results below tend to be slightly better.
 
+> On Apr 20, 2023, we further fixed a small bug in the instance task helper: the MAAE metric object was not reset after computing the metric value (at the end of an epoch), which led to wrong results for *valid_orientation_mae_gt_deg* in consecutive validations. The values reported below are fine as they were computed in a single validation. However, the results reported in our paper slightly differ due the mentioned bug. Use the values below to compare to our approach.
+
 ### NYUv2
 
 To evaluate on NYUv2 (without pretraining on Hypersim), run:
@@ -552,6 +554,9 @@ python main.py --help
 ## Changelog
 
 > Most relevant changes are listed below. Note that backward compatibility might be broken. However, compatibility to original publication is retained.
+
+**Apr 20, 2023**
+- bump `nicr-multitask-scene-analysis` to version 0.2.1 to fix a small bug in the instance task helper: the MAAE metric object was not reset after computing the metric value (at the end of an epoch) - see [evaluation section](#evaluation) for more details
 
 **Mar 29, 2023**
 - bump `nicr-scene-analysis-datasets` to version 0.5.2
