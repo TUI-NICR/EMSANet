@@ -929,6 +929,13 @@ class ArgParserEMSANet(ap.ArgumentParser):
                  "this argument if you load weights created earlier than "
                  "Apr. 28, 2022."
         )
+        group.add_argument(
+            '--hypersim-subsample',
+            type=int,
+            default=1,
+            choices=(1, 2, 5, 10, 20),
+            help="Subsample to use for ScanNet dataset for training."
+        )
 
         # validation/evaluation ------------------------------------------------
         group = self.add_argument_group('Validation/Evaluation')
@@ -1219,18 +1226,22 @@ class ArgParserEMSANet(ap.ArgumentParser):
         if pa.encoder_backbone_pretrained_weights_filepath is not None:
             # check if filepaths for rgb and depth are not set
             if any((pa.rgb_encoder_backbone_pretrained_weights_filepath is not None,
-                    pa.depth_encoder_backbone_pretrained_weights_filepath is not None)):
+                    pa.depth_encoder_backbone_pretrained_weights_filepath is not None,
+                    pa.rgbd_encoder_backbone_pretrained_weights_filepath is not None)):
                 raise ValueError(
                     "Only use `encoder-backbone-pretrained-weights-filepath` "
-                    "if you want to initialize both encoder backbones with the "
-                    "same weights! "
+                    "if you want to initialize all used encoder backbones with "
+                    "the same weights! "
                     "`rgb-encoder-backbone-pretrained-weights-filepath` and "
-                    "`depth-encoder-backbone-pretrained-weights-filepath` must "
+                    "`depth-encoder-backbone-pretrained-weights-filepath` and "
+                    "`rgbd-encoder-backbone-pretrained-weights-filepath` must"
                     "not be set."
                 )
             pa.rgb_encoder_backbone_pretrained_weights_filepath = \
                 pa.encoder_backbone_pretrained_weights_filepath
             pa.depth_encoder_backbone_pretrained_weights_filepath = \
+                pa.encoder_backbone_pretrained_weights_filepath
+            pa.rgbd_encoder_backbone_pretrained_weights_filepath = \
                 pa.encoder_backbone_pretrained_weights_filepath
         # this argument is not needed anymore
         del pa.encoder_backbone_pretrained_weights_filepath

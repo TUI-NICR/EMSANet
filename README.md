@@ -10,25 +10,25 @@
 
 > **Updated on 2023-03-29** for our follow-up works [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer) and [Panoptic Mapping](https://github.com/TUI-NICR/panoptic-mapping).
 
-This repository contains the code to our paper "EMSANet: Efficient Multi-Task
+This repository contains the code to our paper "EMSANet: Efficient Multi-Task 
 RGB-D Scene Analysis for Indoor Environments" ([IEEE Xplore](https://ieeexplore.ieee.org/document/9892852), [arXiv](https://arxiv.org/pdf/2207.04526.pdf))
 
-Our efficient multi-task approach for RGB-D scene analysis (EMSANet)
-simultaneously performs semantic and instance segmentation (panoptic
+Our efficient multi-task approach for RGB-D scene analysis (EMSANet) 
+simultaneously performs semantic and instance segmentation (panoptic 
 segmentation), instance orientation estimation, and scene classification.
 
 ![model architecture](./doc/EMSANet-model.png)
 
-This repository contains the code for training, evaluating, and applying our
-networks. Furthermore, we provide code for converting the model to ONNX and
+This repository contains the code for training, evaluating, and applying our 
+networks. Furthermore, we provide code for converting the model to ONNX and 
 TensorRT, as well as for measuring the inference time.
 
 
 ## License and Citations
-The source code is published under Apache 2.0 license, see
+The source code is published under Apache 2.0 license, see 
 [license file](LICENSE) for details.
 
-If you use the source code or the network weights, please cite the following
+If you use the source code or the network weights, please cite the following 
 paper ([IEEE Xplore](https://ieeexplore.ieee.org/document/9892852), [arXiv](https://arxiv.org/pdf/2207.04526.pdf)):
 
 > Seichter, D., Fischedick, S., Köhler, M., Gross, H.-M.
@@ -54,12 +54,12 @@ in IEEE International Joint Conference on Neural Networks (IJCNN), pp. 1-10, 202
   year={2022}
 }
 ```
-Note that the preprint was accepted to be published in IEEE International Joint
+Note that the preprint was accepted to be published in IEEE International Joint 
 Conference on Neural Networks (IJCNN) 2022.
 
 
 ## Content
-There are subsection for different things to do:
+There are subsections for different things to do:
 - [Installation](#installation): Set up the environment.
 - [Results & Weights](#results--weights): Overview about major results and pretrained network weights.
 - [Evaluation](#evaluation): Reproduce results reported in our paper.
@@ -68,7 +68,7 @@ There are subsection for different things to do:
     - [Sample Inference](#sample-inference): Apply trained model to samples in ./samples.
     - [Time Inference](#time-inference): Time inference on NVIDIA Jetson AGX Xavier using TensorRT.
 - [Training](#training): Train new EMSANet model.
-
+- [Changelog](#changelog): List of changes and updates made to the project.
 
 ## Installation
 1. Clone repository:
@@ -148,38 +148,38 @@ We provide the weights for our selected EMSANet-R34-NBt1D (with ResNet34 NBt1D b
 | SUNRGB-D (test)         | EMSANet-R34-NBt1D                 | 48.39 | 45.56  | 50.15 | 58.14 | 84.85 | 14.24 | 61.83 | 24.5  | [Download](https://drive.google.com/uc?id=1Bonpax9TcTTbk0UH3NoVuNVlENCADc6f) |
 |                         | EMSANet-R34-NBt1D (pre. Hypersim) | 48.47 | 44.18  | 52.84 | 60.67 | 86.01 | 14.10 | 57.22 | 24.5  | [Download](https://drive.google.com/uc?id=1LD4_g-jL4KJPRUmCGgXxx2xGQ7TNZ_o2) |
 
-\* Note that the results will slightly differ if you run the evaluation on your
-own due to an unexpected overflow during panoptic merging that was fixed along
-with preparing the code for the release. However, the obtained results tend to
-be slightly better. For more details, see the
-[evaluation section](#evaluation) below.
-\*\* This mIoU is after merging the semantic and instance segmentation to the
-panoptic segmentation. Since merging is focused on instances, the mIoU might
-change slightly compared to the one obtained from semantic decoder.
-\*\*\* We report the FPS for an NVIDIA Jetson AGX Xavier (Jetpack 4.6,
-TensorRT 8, Float16) without postprocessing (as it is not optimized so far).
-Note that we only report the inference time for NYUv2 in our paper as it has
-more classes than SUNRGB-D. Thus, the FPS for SUNRGB-D can be slightly higher
+\* Note that the results will slightly differ if you run the evaluation on your 
+own due to an unexpected overflow during panoptic merging that was fixed along 
+with preparing the code for the release. However, the obtained results tend to 
+be slightly better. For more details, see the 
+[evaluation section](#evaluation) below.  
+\*\* This mIoU is after merging the semantic and instance segmentation to the 
+panoptic segmentation. Since merging is focused on instances, the mIoU might 
+change slightly compared to the one obtained from semantic decoder.  
+\*\*\* We report the FPS for an NVIDIA Jetson AGX Xavier (Jetpack 4.6, 
+TensorRT 8, Float16) without postprocessing (as it is not optimized so far). 
+Note that we only report the inference time for NYUv2 in our paper as it has 
+more classes than SUNRGB-D. Thus, the FPS for SUNRGB-D can be slightly higher 
 (37 vs. 40 classes).
 
-We further provide the pre-training checkpoints we used for the mentioned
-"pre. Hypersim" results for [NYUv2](https://drive.google.com/uc?id=1toV2usF5Rj5CD28isbExGeand47nvg-2) and
-[SUNRGB-D](https://drive.google.com/uc?id=1mQkkVqT1le6C4mYfZBCdBsaK4o3w0DE0).
+We further provide the pre-training checkpoints we used for the mentioned 
+"pre. Hypersim" results for [NYUv2](https://drive.google.com/uc?id=1toV2usF5Rj5CD28isbExGeand47nvg-2) and 
+[SUNRGB-D](https://drive.google.com/uc?id=1mQkkVqT1le6C4mYfZBCdBsaK4o3w0DE0). 
 Note that the training was done with additional normal estimation task.
 
 Download and extract the models to `./trained_models`.
 
-> Check out our follow-up works [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer) and [Panoptic Mapping](https://github.com/TUI-NICR/panoptic-mapping) for results and weights on ScanNet dataset.
+> Check out our follow-up works [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer) and [Panoptic Mapping](https://github.com/TUI-NICR/panoptic-mapping) for results and weights on ScanNet dataset. 
 
 ## Evaluation
-To reproduce results for the full multi-task approach, use `main.py` together
+To reproduce results for the full multi-task approach, use `main.py` together 
 with `--validation-only`.
 
-> Note that building the model correctly depends on the respective dataset and
+> Note that building the model correctly depends on the respective dataset and 
 the tasks the model was trained on.
 
-> Note that the results below slightly differ due to an unexpected overflow
-during panoptic merging that was fixed along with preparing the code for the
+> Note that the results below slightly differ due to an unexpected overflow 
+during panoptic merging that was fixed along with preparing the code for the 
 release. However, the results below tend to be slightly better.
 
 > On Apr 20, 2023, we further fixed a small bug in the instance task helper: the MAAE metric object was not reset after computing the metric value (at the end of an epoch), which led to wrong results for *valid_orientation_mae_gt_deg* in consecutive validations. The values reported below are fine as they were computed in a single validation. However, the results reported in our paper slightly differ due the mentioned bug. Use the values below to compare to our approach.
@@ -371,18 +371,18 @@ Validation results:
 ```
 
 ## Inference
-We provide scripts for inference on both samples drawn from one of our used
-datasets (`main.py` with additional arguments) and samples located in
-`./samples` (`inference_samples.py`).
+We provide scripts for inference on both samples drawn from one of our used 
+datasets (`main.py` with additional arguments) and samples located in 
+`./samples` (`inference_samples.py`). 
 
-> Note that building the model correctly depends on the respective dataset the
+> Note that building the model correctly depends on the respective dataset the 
 model was trained on.
 
 ### Dataset Inference
-To run inference on a dataset with the full multi-task approach, use `main.py`
+To run inference on a dataset with the full multi-task approach, use `main.py` 
 together with `--validation-only` and `--visualize-validation`.
-By default the visualized outputs are written to a newly created directory next
-to the weights. However, you can also specify the output path with
+By default the visualized outputs are written to a newly created directory next 
+to the weights. However, you can also specify the output path with 
 `--visualization-output-path`.
 
 Example: To apply EMSANet-R34-NBt1D trained on NYUv2 to samples from NYUv2, run:
@@ -406,22 +406,22 @@ python main.py \
     --skip-sanity-check \
     --wandb-mode disabled
 ```
-Similarly, the same can be applied to SUNRGB-D
+Similarly, the same can be applied to SUNRGB-D 
 (see parameters in [evaluation](#evaluation) section).
 
 ### Sample Inference
-Use `inference_samples.py` to apply a trained model to the sample from a
+Use `inference_samples.py` to apply a trained model to the sample from a 
 Kinect v2 given in `./samples`.
 
 > Note that the dataset argument is required to determine the correct dataset
-configuration (classes, colors, ...) and to build the model correctly.
+configuration (classes, colors, ...) and to build the model correctly. 
 However, you do not need to prepare the respective dataset.
-Furthermore, depending on the given depth images and the
-used dataset for training, an additional depth scaling might be necessary.
-The provided example depth image is in 1/10 millimeters (1m equals to a depth
-value of 10000).
+Furthermore, depending on the given depth images and the 
+used dataset for training, an additional depth scaling might be necessary. 
+The provided example depth image is in millimeters (1m equals to a depth 
+value of 1000).
 
-Examples:
+Examples: 
 - To apply our EMSANet-R34-NBt1D trained on NYUv2 to the samples, run:
     ```bash
     python inference_samples.py \
@@ -435,8 +435,9 @@ Examples:
         --no-pretrained-backbone \
         --input-modalities rgb depth \
         --raw-depth \
-        --depth-max 60000 \
-        --depth-scale 0.1 \
+        --depth-max 10000 \
+        --depth-scale 1 \
+        --instance-offset-distance-threshold 40 \
         --weights-filepath ./trained_models/nyuv2/r34_NBt1D_pre.pth
     ```
     ![img](samples/result_nyuv2.png)
@@ -455,28 +456,34 @@ Examples:
         --no-pretrained-backbone \
         --input-modalities rgb depth \
         --raw-depth \
-        --depth-max 60000 \
-        --depth-scale 1 \
+        --depth-max 8000 \
+        --depth-scale 8 \
+        --instance-offset-distance-threshold 40 \
         --weights-filepath ./trained_models/sunrgbd/r34_NBt1D.pth
     ```
     ![img](samples/result_sunrgbd.png)
 
-> Note that the models are not trained on that kind of incomplete depth or RGB
-input images. Moreover, training on NYUv2 means that no images from Kinect v2
+> Note that the models are not trained on that kind of incomplete depth images. 
+Moreover, training on NYUv2 means that no images from Kinect v2 
 were present at all (NYUv2 is Kinect (v1) only).
+
+> Note that the `--instance-offset-distance-threshold` argument is used to 
+assign an instance ID of 0 to pixels if they have a distance greater than 
+40 pixels from the nearest center. During panoptic merging, these pixels are 
+assigned to the void class.
 
 ### Time Inference
 
 > Note, for newer versions of TensorRT `onnx2trt` is not required (and also "
-"not available) anymore. Pass `--trt-use-get-engine-v2` to
+"not available) anymore. Pass `--trt-use-get-engine-v2` to 
 `inference_time_whole_model.py` to use TensoRT's Python API instead.
 
-We timed the inference on an NVIDIA Jetson AGX Xavier with Jetpack 4.6
+We timed the inference on an NVIDIA Jetson AGX Xavier with Jetpack 4.6 
 (TensorRT 8.0.1.6, PyTorch 1.10.0).
 
 Reproducing the timings on an NVIDIA Jetson AGX Xavier further requires:
 - [the PyTorch 1.10.0 wheel](https://nvidia.box.com/shared/static/fjtbno0vpo676a25cgvuqc1wty0fkkg6.whl) from [NVIDIA Forum](https://forums.developer.nvidia.com/t/pytorch-for-jetson-version-1-10-now-available/72048) (see the instruction to install TorchVision 0.11.1 as well)
-- [the NVIDIA TensorRT Open Source Software](https://github.com/NVIDIA/TensorRT/tree/8.0.1) (`onnx2trt` is used to convert the onnx model to a TensorRT engine)
+- [the NVIDIA TensorRT Open Source Software](https://github.com/NVIDIA/TensorRT/tree/8.0.1) (`onnx2trt` is used to convert the onnx model to a TensorRT engine) 
 - the requirements and instructions listed below:
     ```bash
     # do not use numpy>=1.19.4 or add to .bashrc "export OPENBLAS_CORETYPE=ARMV8"
@@ -506,17 +513,17 @@ Reproducing the timings on an NVIDIA Jetson AGX Xavier further requires:
 Subsequently, you can run `inference_time.bash` to reproduce the reported timings.
 
 ## Training
-Use `main.py` to train EMSANet on NYUv2, SUNRGB-D, Hypersim, or any other
-dataset that you implemented following the implementation of the provided
+Use `main.py` to train EMSANet on NYUv2, SUNRGB-D, Hypersim, or any other 
+dataset that you implemented following the implementation of the provided 
 datasets.
 
-> Note that training EMSANet-R34-NBt1D requires the pretrained weights for the
-encoder backbone ResNet-34 NBt1D. You can download our pretrained weights on
+> Note that training EMSANet-R34-NBt1D requires the pretrained weights for the 
+encoder backbone ResNet-34 NBt1D. You can download our pretrained weights on 
 ImageNet from [Link](https://drive.google.com/uc?id=10IVoHgRqXLslYdzMNYKAkYHcJdqsk4BT).
 
-> Note that we trained all models on NVIDIA A100-SXM4-40GB GPUs with batch
-size of 8. However, training the full multi-task approach requires only ~14GB
-of VRAM, so a smaller GPU may also be fine. We did not observe any great boost
+> Note that we trained all models on NVIDIA A100-SXM4-40GB GPUs with batch 
+size of 8. However, training the full multi-task approach requires only ~14GB 
+of VRAM, so a smaller GPU may also be fine. We did not observe any great boost 
 from larger batch sizes.
 
 Example: Train our full multi-task EMSANet-R34-NBt1D on NYUv2:
@@ -554,6 +561,10 @@ python main.py --help
 ## Changelog
 
 > Most relevant changes are listed below. Note that backward compatibility might be broken. However, compatibility to original publication is retained.
+
+**Jun 08, 2023**
+- update sample image (depth in mm, RGB without registration artefacts)
+- bump `nicr-scene-analysis-datasets` to version 0.5.4
 
 **Apr 20, 2023**
 - bump `nicr-multitask-scene-analysis` to version 0.2.1 to fix a small bug in the instance task helper: the MAAE metric object was not reset after computing the metric value (at the end of an epoch) - see [evaluation section](#evaluation) for more details
