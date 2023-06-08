@@ -276,6 +276,11 @@ def get_dataset(args, split):
             else:
                 dataset_kwargs['subsample'] = args.validation_scannet_subsample
 
+        # handle subsample for Hypersim
+        if 'hypersim' == dataset_name:
+            if 'train' == dataset['split']:
+                dataset_kwargs['subsample'] = args.hypersim_subsample
+
         # check if all sample keys are available
         sample_keys_avail = Dataset.get_available_sample_keys(dataset['split'])
         sample_keys_missing = set(sample_keys) - set(sample_keys_avail)
