@@ -74,7 +74,7 @@ def get_preprocessor(
 
     # check if SUNRGB-D is combined as main dataset with NYUv2, ScanNet or
     # Hypersim -> ignore last three classes (other*)
-    datasets = tuple(parse_datasets(args.dataset).keys())
+    datasets = tuple(ds['name'] for ds in parse_datasets(args.dataset))
     if 'sunrgbd' == datasets[0]:
         if any(d in ('nyuv2', 'hypersim', 'scannet') for d in datasets[1:]):
             # map last three classes to void (ignore these classes in training/

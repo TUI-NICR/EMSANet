@@ -25,6 +25,36 @@ def load_weights(args, model, state_dict, verbose=True):
         for k, v in state_dict.items()
     }
 
+    # check if pretrained model was trained with orientation
+    if 'instance' in args.tasks and 'orientation' not in args.tasks:
+        orientation_present = False
+        for key, weight in list(state_dict.items()):
+            if all(n in key for n in ('instance_decoder', 'head', 'task_convs.2')):
+                orientation_present = True
+                break
+        if orientation_present:
+            print_("Detected pretrained weights with orientation, removing "
+                   "orientation weights in instance head.")
+
+            for key, weight in list(state_dict.items()):
+                # remove extra channels from shared convs
+                if all(n in key for n in ('instance_decoder', 'head', 'shared_conv')):
+                    if len(state_dict[key].shape) == 0:
+                        # *.shared_conv.norm.num_batches_tracked
+                        continue
+                    if len(state_dict[key]) == 96:
+                        state_dict[key] = weight[:-32]
+                        continue
+
+                # remove extra 3x3 conv for orientation
+                if all(n in key for n in ('instance_decoder', 'head', 'task_convs.2')):
+                    del state_dict[key]
+                    continue
+
+                # remove last two channels from shared depth wise conv
+                if all(n in key for n in ('instance_decoder', 'head', 'upsampling')):
+                    state_dict[key] = weight[:3]
+
     if len(state_dict) != len(model_state_dict):
         # loaded state dict is different, run a deeper analysis
         # this can happen if a model trained with deviating tasks is loaded

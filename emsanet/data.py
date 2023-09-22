@@ -3,7 +3,7 @@
 .. codeauthor:: Soehnke Fischedick <soehnke-benedikt.fischedick@tu-ilmenau.de>
 .. codeauthor:: Daniel Seichter <daniel.seichter@tu-ilmenau.de>
 """
-from typing import Optional, Iterable, Tuple
+from typing import Optional, Iterable, Sequence, Tuple, Union
 
 from collections import OrderedDict
 from copy import deepcopy
@@ -66,12 +66,11 @@ class ScanNetWithOrientations(ScanNet):
         return ScanNet.SPLIT_SAMPLE_KEYS[split] + ('orientations',)
 
     def __getitem__(self, idx):
-        if not self._use_orientations_replaced:
-            warnings.warn(
-                "You are using ScanNetWithOrientations without copying the "
-                "'use_orientations' information from another dataset."
-            )
-
+        # if not self._use_orientations_replaced:
+        #     warnings.warn(
+        #         "You are using ScanNetWithOrientations without copying the "
+        #         "'use_orientations' information from another dataset."
+        #     )
         return super().__getitem__(idx)
 
     def copy_use_orientations_from(self, other_datataset):
@@ -125,18 +124,18 @@ def parse_datasets(
     )
 
     # ':' indicates joined datasets
-    datasets = datasets_str.lower().split(':')
+    dataset_names = datasets_str.lower().split(':')
     if datasets_path_str is not None:
-        dataset_paths = datasets_path_str.lower().split(':')
-        if len(dataset_paths) != len(datasets):
+        dataset_paths = datasets_path_str.split(':')
+        if len(dataset_paths) != len(dataset_names):
             raise misconfiguration_error
     if datasets_split_str is not None:
         dataset_splits = datasets_split_str.lower().split(':')
-        if len(dataset_splits) != len(datasets):
+        if len(dataset_splits) != len(dataset_names):
             raise misconfiguration_error
 
-    dataset_dict = OrderedDict()    # we may use dict in future here (py > 3.6)
-    for i, dataset in enumerate(datasets):
+    datasets = []
+    for i, dataset in enumerate(dataset_names):
         # handle complex dataset format (e.g., 'sunrgbd[kv1,kv2]')
         re_res = re.findall('([a-z0-9\\_\\-]+)\\[?([a-z0-9\\_\\-]*)\\]?',
                             dataset)
@@ -146,14 +145,15 @@ def parse_datasets(
         # split cameras
         ds_cameras = ds_cameras.split(',') if ds_cameras else None
 
-        assert ds_name not in dataset_dict, f"Got same '{ds_name}' twice."
-        dataset_dict[ds_name] = {
+        # assert ds_name not in dataset_dict, f"Got same '{ds_name}' twice."
+        datasets.append({
+            'name': ds_name,
             'path': None if datasets_path_str is None else dataset_paths[i],
             'split': None if datasets_split_str is None else dataset_splits[i],
             'cameras': ds_cameras
-        }
+        })
 
-    return dataset_dict
+    return datasets
 
 
 def get_dataset(args, split):
@@ -201,8 +201,7 @@ def get_dataset(args, split):
     dataset_split = split.lower()
     n_datasets = len(parse_datasets(args.dataset))
     if 'train' == dataset_split and n_datasets > 1:
-        # currently, we do not have an args for setting multiple train splits,
-        # thus, we mimic the correct format
+        # backward compatibility: use 'train' split for all datasets
         dataset_split = ':'.join(['train'] * n_datasets)
 
     # parse full dataset information
@@ -245,14 +244,14 @@ def get_dataset(args, split):
 
     # get dataset instances
     dataset_instances = []
-    for i, (dataset_name, dataset) in enumerate(datasets.items()):
+    for dataset in datasets:
         if 'none' == dataset['split']:
             # indicates that this dataset should not be loaded (e.g., for
             # training on ScanNet and SunRGB-D but validation only on SunRGB-D)
             continue
 
         # get dataset class
-        if 'scannet' == dataset_name and 'orientations' in sample_keys:
+        if 'scannet' == dataset['name'] and 'orientations' in sample_keys:
             # we do not have orientation annotations for ScanNet, use
             # ScanNetWithOrientations as a simple workaround to mimic empty
             # OrientationDicts, however, this only makes sense if ScanNet is
@@ -264,20 +263,20 @@ def get_dataset(args, split):
             )
             Dataset = ScanNetWithOrientations
         else:
-            Dataset = get_dataset_class(dataset_name)
+            Dataset = get_dataset_class(dataset['name'])
 
         # get default kwargs for dataset
-        dataset_kwargs = deepcopy(default_dataset_kwargs[dataset_name])
+        dataset_kwargs = deepcopy(default_dataset_kwargs[dataset['name']])
 
         # handle subsample for ScanNet
-        if 'scannet' == dataset_name:
+        if 'scannet' == dataset['name']:
             if 'train' == dataset['split']:
                 dataset_kwargs['subsample'] = args.scannet_subsample
             else:
                 dataset_kwargs['subsample'] = args.validation_scannet_subsample
 
         # handle subsample for Hypersim
-        if 'hypersim' == dataset_name:
+        if 'hypersim' == dataset['name']:
             if 'train' == dataset['split']:
                 dataset_kwargs['subsample'] = args.hypersim_subsample
 
@@ -290,7 +289,7 @@ def get_dataset(args, split):
             # inference ScanNet on test split
             warnings.warn(
                 f"Sample keys '{sample_keys_missing}' are not available for "
-                f"dataset '{dataset_name}' and split '{dataset['split']}'. "
+                f"dataset '{dataset['name']}' and split '{dataset['split']}'. "
                 "Removing them from sample keys."
             )
             sample_keys = tuple(set(sample_keys) - sample_keys_missing)
@@ -307,7 +306,7 @@ def get_dataset(args, split):
         )
 
         # TODO: can be removed from codebase later
-        if 'hypersim' == dataset_name and args.hypersim_use_old_depth_stats:
+        if 'hypersim' == dataset['name'] and args.hypersim_use_old_depth_stats:
             # patch dataset
             from nicr_scene_analysis_datasets import dataset_base
             dataset_instance._config = dataset_base.build_dataset_config(
@@ -341,7 +340,7 @@ class DataHelper:
         batch_size_train: int,
         datasets_valid: Iterable[DatasetType],
         batch_size_valid: Optional[int] = None,
-        subset_train: float = 1.0,
+        subset_train: Union[float, Sequence[float]] = 1.0,
         subset_deterministic: bool = False,
         n_workers: int = 8,
         persistent_worker: bool = False,
@@ -470,7 +469,7 @@ class DataHelper:
 
 def get_datahelper(args) -> DataHelper:
     # get datasets
-    dataset_train = get_dataset(args, 'train')
+    dataset_train = get_dataset(args, args.split)
     dataset_valid = get_dataset(args, args.validation_split)
 
     # create list of datasets for validation (each with only one camera ->

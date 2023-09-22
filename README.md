@@ -562,6 +562,14 @@ python main.py --help
 
 > Most relevant changes are listed below. Note that backward compatibility might be broken. However, compatibility to original publication is retained.
 
+**Sep 23, 2023**
+- small fix in dataset path parsing (do not force lower case)
+- add `disable-progress-bars` argument to `main.py`
+- individual subset selection with `--subset-train parameter` in `main.py`
+- enable loading weights from (pre-)training with orientation task
+- bump `nicr-scene-analysis-datasets` to version 0.5.5
+- bump `nicr-multitask-scene-analysis` to version 0.2.2
+
 **Jun 08, 2023**
 - update sample image (depth in mm, RGB without registration artefacts)
 - bump `nicr-scene-analysis-datasets` to version 0.5.4
