@@ -201,7 +201,7 @@ python main.py \
     --no-pretrained-backbone \
     --weights-filepath ./trained_models/nyuv2/r34_NBt1D.pth \
     --checkpointing-metrics valid_semantic_miou bacc mae_gt_deg panoptic_deeplab_semantic_miou panoptic_all_deeplab_pq \
-    --validation-batch-size 16 \
+    --validation-batch-size 4 \
     --validation-only \
     --skip-sanity-check \
     --wandb-mode disabled
@@ -246,7 +246,7 @@ python main.py \
     --no-pretrained-backbone \
     --weights-filepath ./trained_models/nyuv2/r34_NBt1D_pre.pth \
     --checkpointing-metrics valid_semantic_miou bacc mae_gt_deg panoptic_deeplab_semantic_miou panoptic_all_deeplab_pq \
-    --validation-batch-size 16 \
+    --validation-batch-size 4 \
     --validation-only \
     --skip-sanity-check \
     --wandb-mode disabled
@@ -278,6 +278,15 @@ Validation results:
 
 ### SUNRGB-D
 
+> Do not use `nicr-scene-analysis-datasets` >= 0.6.0 if you want to reproduce 
+  reported EMSANet paper results. We refactored and updated instance creation 
+  from 3D boxes for SUNRGB-D in version 0.6.0. The resulting annotations 
+  feature a lot of more instances; however, it is also changing the ground 
+  truth for the evaluation below. For more details, we refer to our follow-up
+  work Panoptic Mapping([GitHub](https://github.com/TUI-NICR/panoptic-mapping), 
+  [arXiv](https://arxiv.org/abs/2309.13635)) that proposes the refined 
+  annotations for SUNRGB-D. 
+
 To evaluate on SUNRGB-D (without pretraining on Hypersim), run:
 ```bash
 python main.py \
@@ -294,7 +303,7 @@ python main.py \
     --no-pretrained-backbone \
     --weights-filepath ./trained_models/sunrgbd/r34_NBt1D.pth \
     --checkpointing-metrics valid_semantic_miou bacc mae_gt_deg panoptic_deeplab_semantic_miou panoptic_all_deeplab_pq \
-    --validation-batch-size 16 \
+    --validation-batch-size 4 \
     --validation-only \
     --skip-sanity-check \
     --wandb-mode disabled
@@ -340,7 +349,7 @@ python main.py \
     --no-pretrained-backbone \
     --weights-filepath ./trained_models/sunrgbd/r34_NBt1D_pre.pth \
     --checkpointing-metrics valid_semantic_miou bacc mae_gt_deg panoptic_deeplab_semantic_miou panoptic_all_deeplab_pq \
-    --validation-batch-size 16 \
+    --validation-batch-size 4 \
     --validation-only \
     --skip-sanity-check \
     --wandb-mode disabled
@@ -399,7 +408,7 @@ python main.py \
     --depth-encoder-backbone-block nonbottleneck1d \
     --no-pretrained-backbone \
     --weights-filepath ./trained_models/nyuv2/r34_NBt1D.pth \
-    --validation-batch-size 16 \
+    --validation-batch-size 4 \
     --validation-only \
     --visualize-validation \
     --visualization-output-path ./visualized_outputs/nyuv2 \
@@ -565,10 +574,12 @@ python main.py --help
 **Sep 23, 2023**
 - small fix in dataset path parsing (do not force lower case)
 - add `disable-progress-bars` argument to `main.py`
-- individual subset selection with `--subset-train parameter` in `main.py`
+- individual subset selection with `--subset-train` argument in `main.py`
 - enable loading weights from (pre-)training with orientation task
-- bump `nicr-scene-analysis-datasets` to version 0.5.5
+- bump `nicr-scene-analysis-datasets` to version 0.5.6
 - bump `nicr-multitask-scene-analysis` to version 0.2.2
+- decrease default validation batch size from 16 to 4 in examples to enable 
+  out-of-the-box execution on smaller GPUs
 
 **Jun 08, 2023**
 - update sample image (depth in mm, RGB without registration artefacts)

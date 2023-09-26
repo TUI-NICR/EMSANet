@@ -866,7 +866,7 @@ class ArgParserEMSANet(ap.ArgumentParser):
             type=str,
             default='1.0',
             help="Limit train data to a subset, e.g., '0.1' will limit the "
-                 "data for training to only 10% of the total number of "
+                 "data for training to only 10 percent of the total number of "
                  "samples, '1.0' will use all data. Use ':' to combine"
                  "subset parameters for concatenated datasets."
                  "Note, the subset is chosen randomly each epoch, except if "
