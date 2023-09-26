@@ -30,27 +30,6 @@ from .lr_scheduler import KNOWN_LR_SCHEDULERS
 from .optimizer import KNOWN_OPTIMIZERS
 
 
-class Range(object):
-    """
-    Helper for argparse to restrict floats to be in a specified range.
-    """
-    def __init__(self, start, end):
-        self.start = start
-        self.end = end
-
-    def __eq__(self, other):
-        return self.start <= other <= self.end
-
-    def __contains__(self, item):
-        return self.__eq__(item)
-
-    def __iter__(self):
-        yield self
-
-    def __repr__(self):
-        return f'[{self.start}, {self.end}]'
-
-
 class ArgParserEMSANet(ap.ArgumentParser):
     def __init__(self, *args, **kwargs):
         # force ArgumentDefaultsHelpFormatter as formatter_class is given
@@ -838,6 +817,13 @@ class ArgParserEMSANet(ap.ArgumentParser):
                  "disabled. Use ':' to combine the paths for combined datasets."
         )
         group.add_argument(
+            '--split',
+            type=str,
+            default='train',
+            help="Dataset split(s) to use for training. Use ':' to combine "
+                 "the splits for combined datasets."
+        )
+        group.add_argument(
             '--raw-depth',
             action='store_true',
             default=False,
@@ -877,14 +863,14 @@ class ArgParserEMSANet(ap.ArgumentParser):
         )
         group.add_argument(
             '--subset-train',
-            type=float,
-            default=1.0,
-            choices=Range(0.0, 1.0),
-            help="Relative value to train on a subset of the train data. For "
-                 "example if `subset-train`=0.2 and we have 100 train images, "
-                 "then we train only on 20 images. These 20 images are chosen "
-                 "randomly each epoch, except if `subset-deterministic` is "
-                 "set."
+            type=str,
+            default='1.0',
+            help="Limit train data to a subset, e.g., '0.1' will limit the "
+                 "data for training to only 10 percent of the total number of "
+                 "samples, '1.0' will use all data. Use ':' to combine"
+                 "subset parameters for concatenated datasets."
+                 "Note, the subset is chosen randomly each epoch, except if "
+                 "`subset-deterministic` is passed."
         )
         group.add_argument(
             '--subset-deterministic',
@@ -934,7 +920,7 @@ class ArgParserEMSANet(ap.ArgumentParser):
             type=int,
             default=1,
             choices=(1, 2, 5, 10, 20),
-            help="Subsample to use for ScanNet dataset for training."
+            help="Subsample to use for Hypersim dataset for training."
         )
 
         # validation/evaluation ------------------------------------------------
@@ -1163,6 +1149,12 @@ class ArgParserEMSANet(ap.ArgumentParser):
             default='',
             help="Just to add some additional notes for this run."
         )
+        self.add_argument(
+            '--disable-progress-bars',
+            action='store_true',
+            default=False,
+            help="Disables all tqdm progress bars (currently only in main.py)."
+        )
 
     def parse_args(self, args=None, namespace=None, verbose=True):
         # parse args
@@ -1377,6 +1369,13 @@ class ArgParserEMSANet(ap.ArgumentParser):
                 pa.normal_no_multiscale_supervision = True
                 _warn("Forced `normal-no-multiscale-supervision` as "
                       f"`normal-decoder` is '{pa.normal_decoder}'.")
+
+        # handle new/old format for '--subset-train'
+        if ':' in pa.subset_train:
+            # subset given for concatenated datasets, e.g., 0.5:1.0
+            pa.subset_train = tuple(map(float, pa.subset_train.split(':')))
+        else:
+            pa.subset_train = float(pa.subset_train)
 
         # evaluation ----------------------------------------------------------
         if pa.validation_full_resolution:

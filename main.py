@@ -23,7 +23,7 @@ import torch
 torch.backends.cudnn.benchmark = True
 torch.backends.cudnn.deterministic = True
 from torchmetrics import MeanMetric
-from tqdm import tqdm
+from tqdm import tqdm as tqdm_
 import wandb
 
 from nicr_mt_scene_analysis.checkpointing import CheckpointHelper
@@ -234,6 +234,17 @@ def main():
     # Args & General Stuff -----------------------------------------------------
     parser = ArgParserEMSANet()
     args = parser.parse_args()
+
+    if args.disable_progress_bars:
+        # dummy tqdm function that only prints the description and step number
+        def tqdm(obj, **kwargs):
+            if 'desc' in kwargs:
+                print(kwargs['desc'],
+                      f"({kwargs.get('total', 'unknown number of')} steps)")
+            return obj
+    else:
+        # use tqdm
+        tqdm = tqdm_
 
     # prepare results paths
     if not args.is_resumed_training:
