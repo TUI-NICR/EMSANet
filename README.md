@@ -483,8 +483,8 @@ assigned to the void class.
 
 ### Time Inference
 
-> Note, for newer versions of TensorRT `onnx2trt` is not required (and also "
-"not available) anymore. Pass `--trt-use-get-engine-v2` to 
+> Note, for newer versions of TensorRT `onnx2trt` is not required (and also
+not available) anymore. Pass `--trt-use-get-engine-v2` to 
 `inference_time_whole_model.py` to use TensoRT's Python API instead.
 
 We timed the inference on an NVIDIA Jetson AGX Xavier with Jetpack 4.6 
