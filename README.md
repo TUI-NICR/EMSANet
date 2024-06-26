@@ -607,11 +607,11 @@ python main.py --help
 **Jun 26, 2024**
 - add more recent and thinned-out environment (`emsanet_environment_2024.yml`) 
   with Python 3.11 and latest tested PyTorch 2.3
-- add support for MPS device (see `--device mps` argument in `main.py`):
+- add support for MPS device (see `--device` argument in `emsanet/args.py`):
     - only tested for inference
     - might be slower as not all instance postprocessing operations are 
       supported yet (we use some CPU fallbacks)
-- add support for CPU device (see `--device cpu` argument in `main.py`)
+- add support for CPU device (see `--device` argument in `emsanet/args.py`)
 - fix bug in visualization (only with MPS/CPU device)
 - visualize ground truth in fullres as well
 - visualize semantic and instance of ground-truth panoptic separately
