@@ -579,7 +579,7 @@ def main():
     os.makedirs(args.inference_output_path, exist_ok=True)
 
     # device
-    device = torch.device('cuda')
+    device = torch.device(args.device)
 
     # data ---------------------------------------------------------------------
     # note that args.validation_scannet_subsample is used for ScanNet in test
@@ -675,7 +675,8 @@ def main():
 
     # load weights
     print(f"Loading checkpoint: '{args.weights_filepath}'.")
-    checkpoint = torch.load(args.weights_filepath, map_location='cpu')
+    checkpoint = torch.load(args.weights_filepath,
+                            map_location=torch.device('cpu'))
     if 'epoch' in checkpoint:
         print(f"-> Epoch: {checkpoint['epoch']}")
     if args.debug and 'logs' in checkpoint:

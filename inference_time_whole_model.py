@@ -415,7 +415,7 @@ def time_inference_tensorrt(onnx_filepath,
 
                     # we also need some inputs on gpu for the postprocessing
                     input_gpu = {
-                        k: v.to(device)
+                        k: v.to(postprocessors_device)
                         for k, v in input_.items()
                         if ('rgb' in k or 'depth' in k) and torch.is_tensor(v)   # includes fullres
                     }
@@ -496,7 +496,13 @@ if __name__ == '__main__':
             )
         )
         for sample in data_helper.valid_dataloaders[0]:
-            inputs.append(sample)
+            # inputs.append(sample)
+            # newer pytorch versions cannot handle the full dict input in JIT tracer
+            inputs.append({
+                k: v
+                for k, v in sample.items()
+                if k in ['rgb', 'depth']
+            })
 
             if (args.n_runs + args.n_runs_warmup) == len(inputs):
                 # enough samples collected

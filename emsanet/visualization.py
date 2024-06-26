@@ -6,6 +6,8 @@
 """
 from typing import Any, Dict, Optional, Sequence, Union
 
+from copy import deepcopy
+import json
 import os
 import warnings
 
@@ -94,8 +96,11 @@ def visualize(
         instance_color_generator = None
         panoptic_color_generator = None
 
-    # visualize ground truth
+    # paths
     gt_path = os.path.join(output_path, 'gt')
+    pred_path = os.path.join(output_path, 'pred')
+
+    # visualize ground truth
     batch_visualization = visualize_batches(
         batch=batch,
         dataset_config=dataset_config,
@@ -107,9 +112,26 @@ def visualize(
         output_path=gt_path
     )
 
-    # visualize ground truth for side outputs (downscaled images)
-    additional_keys = ['_down_8', '_down_16', '_down_32']
-    for key in additional_keys:
+    # visualize predictions
+    prediction_visualization = visualize_predictions(
+        predictions=predictions,
+        batch=batch,
+        dataset_config=dataset_config,
+        instance_color_generator=instance_color_generator,
+        panoptic_color_generator=panoptic_color_generator
+    )
+    save_visualization_result_dict(
+        visualization_dict=prediction_visualization,
+        output_path=pred_path
+    )
+
+    # visualize side outputs (down-scaled images)
+    # NOTE: the part below is used for internal debugging and visualization only
+    #       and, thus, might not be robust to changes in configuration,
+    #       moreover, note that you must pass "--debug" to the main script to
+    #       get side outputs created during inference
+    additional_keys = ('_down_32', '_down_16', '_down_8')
+    for i, key in enumerate(additional_keys):
         if key not in batch:
             # we do not have side outputs
             continue
@@ -118,7 +140,7 @@ def visualize(
         so_batch = batch[key]
         so_batch['identifier'] = so_batch['identifier']
 
-        # visualize side output
+        # visualize ground truth for side output
         so_batch_visualization = visualize_batches(
             batch=so_batch,
             dataset_config=dataset_config,
@@ -130,18 +152,46 @@ def visualize(
             output_path=os.path.join(gt_path, key)
         )
 
-    # visualize predictions
-    prediction_visualization = visualize_predictions(
-        predictions=predictions,
-        batch=batch,
-        dataset_config=dataset_config,
-        instance_color_generator=instance_color_generator,
-        panoptic_color_generator=panoptic_color_generator
-    )
-    save_visualization_result_dict(
-        visualization_dict=prediction_visualization,
-        output_path=os.path.join(output_path, 'pred')
-    )
+        # get predictions for side output
+        # NOTE: by default, we do not predict side outputs during inference,
+        #       to get these predictions, you currently have to modify
+        #       the 'forward' function in 'DenseDecoderModule' in:
+        #       'nicr_mt_scene_analysis/model/decoder/dense_base.py'
+        try:
+            # note, this may fail if the side output order does not natch:
+            # down_32, down_16, down_8
+
+            so_predictions = {}
+            # semantic side outputs
+            if 'semantic_side_outputs' in predictions:
+                if predictions['semantic_side_outputs'][i] is not None:
+                    side_output = predictions['semantic_side_outputs'][i]
+                    seg_idx = side_output.argmax(dim=1)   # get predicted class
+                    so_predictions['semantic_segmentation_idx'] = seg_idx
+            # instance side outputs
+            if 'instance_side_outputs' in predictions:
+                if predictions['instance_side_outputs'][i] is not None:
+                    side_output = predictions['instance_side_outputs'][i]
+                    so_predictions['instance_centers'] = side_output[0]
+                    so_predictions['instance_offsets'] = side_output[1]
+                    with_orientation = (3 == len(side_output))
+                    if with_orientation:
+                        so_predictions['instance_orientation'] = side_output[2]
+
+            if so_predictions:
+                so_prediction_visualization = visualize_predictions(
+                    predictions=so_predictions,
+                    batch=so_batch,
+                    dataset_config=dataset_config,
+                    instance_color_generator=instance_color_generator,
+                    panoptic_color_generator=panoptic_color_generator
+                )
+                save_visualization_result_dict(
+                    visualization_dict=so_prediction_visualization,
+                    output_path=os.path.join(pred_path, key)
+                )
+        except Exception:
+            print(f"Failed to visualize side output '{key}'.")
 
 
 def save_visualization_result_dict(
@@ -168,6 +218,10 @@ def save_visualization_result_dict(
                 if v.ndim == 3:
                     v = cv2.cvtColor(v, cv2.COLOR_RGB2BGR, CV_WRITE_FLAGS)
                 cv2.imwrite(out_filepath + '.png', v)
+            elif isinstance(v, dict):
+                # instance meta dicts, write as json
+                with open(out_filepath + '.json', 'w') as f:
+                    json.dump(v, f, indent=4, sort_keys=True)
             else:
                 # scene label
                 with open(out_filepath + '.txt', 'w') as f:
@@ -295,55 +349,117 @@ def visualize_batches(
         batch_np = {}
 
     # semantic -----------------------------------------------------------------
-    if 'semantic' in batch:
-        # semantic may have changed due to mapping some classes to void
-        result_dict[f'semantic'] = [
-            visualize_semantic_pil(img, colors=colors)
-            for img in batch['semantic'].cpu().numpy()
-        ]
+    # semantic may have changed due to mapping some classes to void
+    key = 'semantic'
+    for k in (key, get_fullres_key(key)):
+        if k in batch:
+            result_dict[k] = [
+                visualize_semantic_pil(img, colors=colors)
+                for img in batch[k].cpu().numpy()
+            ]
 
     # instance -----------------------------------------------------------------
-    if 'instance' in batch:
-        # instance may have changed due to selecting thing classes
-        result_dict['instance'] = [
-            visualize_instance_pil(
-                instance_img=img,
-                shared_color_generator=instance_color_generator
-            )
-            for img in batch['instance'].cpu().numpy()
-        ]
-
-        result_dict['instance_white_bg'] = [
-            # use foreground mask to change background color to white
-            _apply_mask(
-                img=visualize_instance(
+    # instance may have changed due to selecting thing classes
+    key = 'instance'
+    for k in (key, get_fullres_key(key)):
+        if k in batch:
+            result_dict[k] = [
+                visualize_instance_pil(
                     instance_img=img,
                     shared_color_generator=instance_color_generator
-                ),
+                )
+                for img in batch[k].cpu().numpy()
+            ]
+
+            result_dict[f'{k}_white_bg'] = [
+                # use foreground mask to change background color to white
+                # 'instance_foreground' is equal to instance != 0 due to
+                # InstanceClearStuffIDs
+                # see: nicr_mt_scene_analysis/data/preprocessing/instance.py:191
+                _apply_mask(
+                    img=visualize_instance(
+                        instance_img=img,
+                        shared_color_generator=instance_color_generator
+                    ),
+                    mask=(img != 0),
+                    value=(255, 255, 255)
+                )
+                for img in batch[k].cpu().numpy()
+            ]
+
+    if 'instance' in batch:
+        # note: we do not have the instance-specific keys in fullres
+        result_dict['instance_center'] = [
+            _apply_mask(
+                img=visualize_instance_center(center_img=img),
+                mask=np.logical_not(fg),
+                value=(0, 0, 0)
+            )
+            for img, fg in zip(batch['instance_center'].cpu().numpy(),
+                               batch['instance_center_mask'].cpu().numpy())
+        ]
+
+        result_dict['instance_center_white_bg'] = [
+            _apply_mask(
+                img=visualize_instance_center(center_img=img),
                 mask=np.logical_not(fg),
                 value=(255, 255, 255)
             )
-            for img, fg in zip(batch['instance'].cpu().numpy(),
-                               batch['instance_foreground'].cpu().numpy())
-        ]
-
-        result_dict['instance_center'] = [
-            visualize_instance_center(center_img=img)
-            for img in batch['instance_center'].cpu().numpy()
+            for img, fg in zip(batch['instance_center'].cpu().numpy(),
+                               batch['instance_center_mask'].cpu().numpy())
         ]
 
         result_dict['instance_offset'] = [
             visualize_instance_offset(
                 offset_img=img.transpose(1, 2, 0),
-                foreground_mask=fg
+                foreground_mask=fg,
+                background_color=(0, 0, 0)
+            )
+            for img, fg in zip(batch['instance_offset'].cpu().numpy(),
+                               batch['instance_foreground'].cpu().numpy())
+        ]
+
+        result_dict['instance_offset_white_bg'] = [
+            visualize_instance_offset(
+                offset_img=img.transpose(1, 2, 0),
+                foreground_mask=fg,
+                background_color=(255, 255, 255)
             )
             for img, fg in zip(batch['instance_offset'].cpu().numpy(),
                                batch['instance_foreground'].cpu().numpy())
         ]
 
     # orientation --------------------------------------------------------------
+    # instance orientation may have changed due to selecting thing classes
+    key_o = 'orientations'
+    key_i = 'instance'
+    for k_o, k_i in zip((key_o, get_fullres_key(key_o)),
+                        (key_i, get_fullres_key(key_i))):
+        if k in batch:
+            # orientation with outline with black/white background
+            result_dict[k_o] = [
+                visualize_instance_orientations(
+                    *data,
+                    shared_color_generator=instance_color_generator,
+                    draw_outline=True,
+                    **KWARGS_INSTANCE_ORIENTATION
+                )
+                for data in zip(batch[k_i].cpu().numpy(),
+                                batch['orientations_present'])
+            ]
+            result_dict[f'{k_o}_white_bg'] = [
+                visualize_instance_orientations(
+                    *data,
+                    shared_color_generator=instance_color_generator,
+                    draw_outline=True,
+                    **KWARGS_INSTANCE_ORIENTATION_WHITEBG
+                )
+                for data in zip(batch[k_i].cpu().numpy(),
+                                batch['orientations_present'])
+            ]
+
     if 'orientation' in batch:
-        # instance orientation may have changed due to selecting thing classes
+        # note: we do not have the orientation-specific keys in fullres
         # 2d dense orientation with black/white background
         result_dict['orientation'] = [
             # use foreground mask to change background color to black
@@ -366,66 +482,82 @@ def visualize_batches(
                                  batch['orientation_foreground'].cpu().numpy())
         ]
 
-        # orientation with outline
-        result_dict[f'orientations'] = [
-            visualize_instance_orientations(
-                *data,
-                shared_color_generator=instance_color_generator,
-                draw_outline=True,
-                **KWARGS_INSTANCE_ORIENTATION
-            )
-            for data in zip(batch['instance'].cpu().numpy(),
-                            batch['orientations_present'])
-        ]
-        result_dict[f'orientations_white_bg'] = [
-            visualize_instance_orientations(
-                *data,
-                shared_color_generator=instance_color_generator,
-                draw_outline=True,
-                **KWARGS_INSTANCE_ORIENTATION_WHITEBG
-            )
-            for data in zip(batch['instance'].cpu().numpy(),
-                            batch['orientations_present'])
-        ]
-
     # panoptic -----------------------------------------------------------------
-    if 'panoptic' in batch:
-        sem_labels = dataset_config.semantic_label_list
-        result_dict['panoptic'] = [
-            visualize_panoptic(
-                panoptic_img=img,
-                semantic_classes_colors=sem_labels.colors,
-                semantic_classes_is_thing=sem_labels.classes_is_thing,
-                max_instances=1 << 16,
-                void_label=0,
-                shared_color_generator=panoptic_color_generator
-            )
-            for img in batch['panoptic'].cpu().numpy()
-        ]
+    sem_labels = dataset_config.semantic_label_list
+    key = 'panoptic'
+    shift = 1 << 16
+    for k in (key, get_fullres_key(key)):
+        if k in batch:
+            # -> panoptic
+            result_dict[k] = [
+                visualize_panoptic(
+                    panoptic_img=img,
+                    semantic_classes_colors=sem_labels.colors,
+                    semantic_classes_is_thing=sem_labels.classes_is_thing,
+                    max_instances=1 << 16,
+                    void_label=0,
+                    shared_color_generator=panoptic_color_generator
+                )
+                for img in batch[k].cpu().numpy()
+            ]
+            # -> semantic
+            result_dict[f'{k}_semantic'] = [
+                visualize_semantic_pil(img // shift, colors=colors)
+                for img in batch[k].cpu().numpy()
+            ]
+            # -> instance
+            result_dict[f'{k}_instance'] = []
+            for img in batch[k].cpu().numpy().copy():
+                # enumerate instances, otherwise, instances are counted per
+                # semantic class and thus not unique in the visualization
+                mask = (img % shift) == 0    # get instance id != 0
+                img[mask] = 0    # set stuff to zero
+                instance = np.zeros_like(img)
+                for i, instance_id in enumerate(np.unique(img)):
+                    if instance_id == 0:
+                        continue    # skip no instance
+                    instance[img == instance_id] = i + 1
+                result_dict[f'{k}_instance'].append(
+                    visualize_instance_pil(
+                        instance_img=instance,
+                        shared_color_generator=instance_color_generator
+                    )
+                )
 
     # panoptic + orientation ---------------------------------------------------
     # panoptic image overlayed with orientation as text
-    if 'panoptic' in batch and 'orientations_present' in batch:
-        result_dict['panoptic_orientations'] = [
-            _copy_and_apply_mask(
-                img=panoptic_img,
-                mask=visualize_instance_orientations(
-                    instance_img=instance,
-                    orientations=orientations,
-                    shared_color_generator=instance_color_generator,
-                    draw_outline=False,
-                    thickness=3,
-                    font_size=45,
-                    bg_color=0,
-                    bg_color_font='black'
-                ).any(axis=-1),   # text mask
-                value=(255, 255, 255)    # white text color
-            )
-            for panoptic_img, instance, orientations in zip(
-                result_dict['panoptic'],
-                batch['instance'].cpu().numpy(),
-                batch['orientations_present']
-            )
+    key_p = 'panoptic'
+    key_i = 'instance'
+    for k_p, k_i in zip((key_p, get_fullres_key(key_p)),
+                        (key_i, get_fullres_key(key_i))):
+        if k in batch and 'orientations_present' in batch:
+            result_dict[f'{k_p}_orientations'] = [
+                _copy_and_apply_mask(
+                    img=panoptic_img,
+                    mask=visualize_instance_orientations(
+                        instance_img=instance,
+                        orientations=orientations,
+                        shared_color_generator=instance_color_generator,
+                        draw_outline=False,
+                        thickness=3,
+                        font_size=45,
+                        bg_color=0,
+                        bg_color_font='black'
+                    ).any(axis=-1),   # text mask
+                    value=(255, 255, 255)    # white text color
+                )
+                for panoptic_img, instance, orientations in zip(
+                    result_dict[k_p],
+                    batch[k_i].cpu().numpy(),
+                    batch['orientations_present']
+                )
+            ]
+
+    # scene classification -----------------------------------------------------
+    if 'scene' in batch:
+        result_dict['scene'] = [
+            dataset_config.scene_label_list[s].class_name
+            for s in batch['scene']
         ]
 
     return result_dict
@@ -453,33 +585,43 @@ def visualize_predictions(
     # semantic -----------------------------------------------------------------
     # -> predicted class
     key = 'semantic_segmentation_idx'
-    if key in predictions:
-        for k in (key, get_fullres_key(key)):  # plain output and fullres
-            result_dict[k] = [
-                visualize_semantic_pil(img, colors=colors[1:])
-                for img in predictions[k].cpu().numpy()
-            ]
+    for k in (key, get_fullres_key(key)):  # plain output and fullres
+        if k not in predictions:
+            continue    # may be a side-output visualization or not in tasks
+
+        result_dict[k] = [
+            visualize_semantic_pil(img, colors=colors[1:])
+            for img in predictions[k].cpu().numpy()
+        ]
     # -> predicted class score
     key = 'semantic_segmentation_score'
-    if key in predictions:
-        for k in (key, get_fullres_key(key)):  # plain output and fullres
-            result_dict[k] = [
-                visualize_heatmap(img, cmap='jet')
-                for img in predictions[k].cpu().numpy()
-            ]
+    for k in (key, get_fullres_key(key)):  # plain output and fullres
+        if k not in predictions:
+            continue    # may be a side-output visualization or not in tasks
+
+        result_dict[k] = [
+            visualize_heatmap(img, cmap='jet')
+            for img in predictions[k].cpu().numpy()
+        ]
 
     # instance -----------------------------------------------------------------
     # -> instance segmentation using gt foreground mask (dataset eval only)
     key = 'instance_segmentation_gt_foreground'
+    for k in (key, get_fullres_key(key)):  # plain output and fullres
+        if key not in predictions:
+            continue    # may be a side-output visualization or not in tasks
+
+        result_dict[k] = [
+            visualize_instance_pil(
+                instance_img=img,
+                shared_color_generator=instance_color_generator
+            )
+            for img in predictions[k].cpu().numpy()
+        ]
+    # corresponding instance meta
+    key = 'instance_segmentation_gt_meta'
     if key in predictions:
-        for k in (key, get_fullres_key(key)):  # plain output and fullres
-            result_dict[k] = [
-                visualize_instance_pil(
-                    instance_img=img,
-                    shared_color_generator=instance_color_generator
-                )
-                for img in predictions[k].cpu().numpy()
-            ]
+        result_dict[key] = deepcopy(predictions[key])
 
     # raw predictions of instance head (there are no fullres versions)
     # -> instance centers
@@ -500,7 +642,17 @@ def visualize_predictions(
         # masked with gt foreground
         key_fg = 'instance_foreground'
         if key_fg in batch:
+            # black background
             result_dict[key+'_gt_foreground'] = [
+                _copy_and_apply_mask(
+                    img=img_offset,
+                    mask=np.logical_not(fg),
+                    value=(0, 0, 0)
+                ) for img_offset, fg in zip(result_dict[key],
+                                            batch[key_fg].cpu().numpy())
+            ]
+            # white background
+            result_dict[key+'_gt_foreground_white_bg'] = [
                 _copy_and_apply_mask(
                     img=img_offset,
                     mask=np.logical_not(fg),
@@ -511,7 +663,17 @@ def visualize_predictions(
         # masked with predicted foreground for panoptic segmentation
         key_fg = 'panoptic_foreground_mask'
         if key_fg in predictions:
+            # black background
             result_dict[key+'_pred_foreground'] = [
+                _copy_and_apply_mask(
+                    img=img_offset,
+                    mask=np.logical_not(fg),
+                    value=(0, 0, 0)
+                ) for img_offset, fg in zip(result_dict[key],
+                                            predictions[key_fg].cpu().numpy())
+            ]
+            # white background
+            result_dict[key+'_pred_foreground_white_bg'] = [
                 _copy_and_apply_mask(
                     img=img_offset,
                     mask=np.logical_not(fg),
@@ -598,7 +760,7 @@ def visualize_predictions(
             )
             for data in zip(
                 batch['instance'].cpu().numpy(),
-                predictions['orientations_gt_instance_gt_orientation_foreground']
+                predictions[key]
             )
         ]
         result_dict[key+'_white_bg'] = [
@@ -610,7 +772,7 @@ def visualize_predictions(
             )
             for data in zip(
                 batch['instance'].cpu().numpy(),
-                predictions['orientations_gt_instance_gt_orientation_foreground']
+                predictions[key]
             )
         ]
 
@@ -628,7 +790,7 @@ def visualize_predictions(
             # get foreground masks and instance images
             fg_masks = np.isin(predictions[k_s].cpu().numpy(),
                                use_orientation_class_indices)  # both with void
-            instance_imgs = predictions[k_i].cpu().numpy()
+            instance_imgs = predictions[k_i].cpu().numpy().copy()
             instance_imgs[np.logical_not(fg_masks)] = 0
 
             # black bg
@@ -710,6 +872,11 @@ def visualize_predictions(
                 for img in predictions[k].cpu().numpy()
             ]
 
+    # -> corresponding instance meta
+    key = 'panoptic_segmentation_deeplab_instance_meta'
+    if key in predictions:
+        result_dict[key] = deepcopy(predictions[key])
+
     # -> predicted instance score
     key = 'panoptic_segmentation_deeplab_instance_score'
     if key in predictions:
@@ -732,7 +899,7 @@ def visualize_predictions(
         # create orientation images with text but without outline
         fg_masks = np.isin(predictions[key_semantic].cpu().numpy(),
                            use_orientation_class_indices)  # both with void
-        instance_imgs = predictions[key_instance].cpu().numpy()
+        instance_imgs = predictions[key_instance].cpu().numpy().copy()
         instance_imgs[np.logical_not(fg_masks)] = 0
         orientation_imgs = [
             visualize_instance_orientations(

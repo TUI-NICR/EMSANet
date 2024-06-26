@@ -45,6 +45,7 @@ def test_preprocessing(dataset, tasks, modalities, phase, multiscale):
     args.input_modalities = modalities
     args.dataset = dataset
     args.dataset_path = DATASET_PATH_DICT[dataset]
+    args.sunrgbd_instances_version = 'panopticndt'
     if dataset in ('cityscapes', 'hypersim'):
         args.raw_depth = True
 

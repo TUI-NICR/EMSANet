@@ -124,3 +124,6 @@ results*
 lsf_*
 inference_results*
 visualized_outputs*
+
+# Datasets
+datasets/*
