@@ -608,7 +608,7 @@ python main.py --help
 > Most relevant changes are listed below. Note that backward compatibility 
   might be broken. However, compatibility to original publication is retained.
 
-**Jun 26, 2024**
+**Jun 27, 2024**
 - add more recent and thinned-out environment (`emsanet_environment_2024.yml`) 
   with Python 3.11 and latest tested PyTorch 2.3
 - add support for MPS device (see `--device` argument in `emsanet/args.py`):
