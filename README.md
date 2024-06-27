@@ -593,6 +593,10 @@ python main.py \
     --wandb-mode disabled
 ```
 
+> To reproduce the results reported in our EMSANet paper for SUNRGB-D, make
+sure to prepare and use the correct dataset version for SUNRGB-D (see note in 
+[evaluation section](#sunrgb-d)).
+
 For more options, we refer to `./emsanet/args.py` or simply run:
 
 ```bash

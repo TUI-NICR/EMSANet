@@ -907,7 +907,7 @@ class ArgParserEMSANet(ap.ArgumentParser):
         group.add_argument(
             '--sunrgbd-instances-version',
             type=str,
-            default='emsanet',
+            default='panopticndt',
             choices=('emsanet', 'panopticndt', 'anyold'),
             help="We have created two versions of SUNRGB-D with instance "
                  "annotations extracted from existing 3d-box annotations: "
