@@ -471,8 +471,8 @@ class ArgParserEMSANet(ap.ArgumentParser):
             default=0.1,
             help="Threshold to use for filtering valid instances during "
                  "postprocessing the predicted center heatmaps. The order of "
-                 "postprocessing operations is: threshold, nms, opt. masking, "
-                 "top-k."
+                 "postprocessing operations is: threshold, nms, top-k, opt. "
+                 "masking."
         )
         group.add_argument(
             '--instance-center-heatmap-nms-kernel-size',
@@ -481,7 +481,7 @@ class ArgParserEMSANet(ap.ArgumentParser):
             help="Kernel size for non-maximum suppression to use for "
                  "filtering the predicting instance center heatmaps during "
                  "postprocessing. The order of postprocessing operations is: "
-                 "threshold, nms, opt. masking, top-k."
+                 "threshold, nms, top-k, opt. masking."
         )
         group.add_argument(
             '--instance-center-heatmap-apply-foreground-mask',
@@ -492,8 +492,8 @@ class ArgParserEMSANet(ap.ArgumentParser):
                  "actually belong to the foreground and, thus, prevents "
                  "instance pixels after offset shifting being assigned to "
                  "such an instance center later on. The order of "
-                 "postprocessing operations is: threshold, nms, opt. masking, "
-                 "top-k."
+                 "postprocessing operations is: threshold, nms, top-k, opt. "
+                 "masking."
         )
         group.add_argument(
             '--instance-center-heatmap-top-k',
@@ -501,7 +501,7 @@ class ArgParserEMSANet(ap.ArgumentParser):
             default=64,
             help="Top-k instances to finally select during postprocessing "
                  "instance center heatmaps. The order of postprocessing "
-                 "operations is: threshold, nms, opt. masking, top-k.")
+                 "operations is: threshold, nms, top-k, opt. masking.")
         group.add_argument(
             '--instance-center-encoding',
             type=str,
@@ -904,6 +904,25 @@ class ArgParserEMSANet(ap.ArgumentParser):
             help="Do not force mm for SUNRGB-D depth values. Use this option "
                  "to evaluate weights of the EMSANet paper on SUNRGB-D."
         )
+        group.add_argument(
+            '--sunrgbd-instances-version',
+            type=str,
+            default='panopticndt',
+            choices=('emsanet', 'panopticndt', 'anyold'),
+            help="We have created two versions of SUNRGB-D with instance "
+                 "annotations extracted from existing 3d-box annotations: "
+                 "'emsanet': this initial version was created for training the "
+                 "original EMSANet - see IJCNN 2022 paper; "
+                 "'panopticndt': referes to a revised version that was created "
+                 "along with the work for PanopticNDT - see IROS 2023 paper, "
+                 "it refines large parts of the instance extraction (see "
+                 "changelog for v0.6.0 of the nicr-scene-analysis-datasets "
+                 "package for details). "
+                 "Additionally, 'anyold' can be used can be used to force "
+                 "loading any SUNRGB-D dataset prepared with a dataset package "
+                 "version < v0.7.0; however, use this value only if you know "
+                 "what you are doing!"
+        )
         # -> Hypersim related parameters
         # TODO: can be removed from codebase later
         group = self.add_argument_group('Dataset and Augmentation -> Hypersim')
@@ -935,7 +954,8 @@ class ArgParserEMSANet(ap.ArgumentParser):
             '--visualize-validation',
             default=False,
             action='store_true',
-            help="Whether the validation images should be visualized."
+            help="Whether the validation should be visualized. Consider adding "
+                 "`--debug` to visalize the ground-truth side outputs as well."
         )
         group.add_argument(
             '--visualization-output-path',
@@ -1137,6 +1157,13 @@ class ArgParserEMSANet(ap.ArgumentParser):
         )
 
         # other parameters ----------------------------------------------------
+        self.add_argument(
+            '--device',
+            type=str,
+            default='cuda',
+            choices=('cuda', 'cpu', 'mps'),
+            help="Device to use for training and validation."
+        )
         self.add_argument(
             '--hostname',
             type=str,

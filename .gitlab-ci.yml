@@ -34,20 +34,30 @@ stages:
         - python -m pip install pytest-xdist    # multiple workers for pytest (-n 2 below)
 
         # install dependencies
-        - conda install 'protobuf<=3.19.1'    # for onnx
         - |
           if [ "${PYTHON_VERSION_TO_USE}" == "3.6" ]; then
+              # EMSANet Jetson
+              conda install 'protobuf<=3.19.1'    # for onnx
+              python -m pip install onnx==1.12.0
+
               conda install pytorch=1.10.1 torchvision=0.11.2 cudatoolkit=11.3 -c pytorch
-          else
+
+          elif [ "${PYTHON_VERSION_TO_USE}" == "3.8" ]; then
+              # EMSANet
               conda install pytorch=1.13.0 torchvision=0.14.0 torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
+
+          else
+              # latest tested version
+              conda install pytorch=2.3.0 torchvision=0.18.0 pytorch-cuda=11.8 -c pytorch -c nvidia
           fi
+
         - python -m pip install 'opencv-python>=4.2.0.34'
-        - python -m pip install wandb==0.13.6
-        - python -m pip install onnx==1.12.0
+        - python -m pip install 'wandb>=0.13.6'
+        - python -m pip install 'onnx>=1.12.0'
         - python -m pip install tui_imagenet==0.1.0
-        - python -m pip install nicr-cluster-utils==1.0.0
+        - python -m pip install 'nicr-cluster-utils>=1.0.0'
         - python -m pip install git+https://github.com/cocodataset/panopticapi.git
-        - python -m pip install pycocotools==2.0.2
+        # - python -m pip install pycocotools==2.0.2
 
         # install packages (and all missing dependencies)
         - python -m pip install --editable lib/nicr-scene-analysis-datasets[test]
@@ -80,20 +90,26 @@ style_check:
         # check style using pylint (without taking into account)
         - pylint ./ --rcfile=${CI_PROJECT_DIR}/.pylintrc || true
 
-tests_py36:
-    <<: *test_template
-    variables:
-        PYTHON_VERSION_TO_USE: "3.6"
-        GIT_SUBMODULE_STRATEGY: recursive
+# tests_py36:
+#     <<: *test_template
+#     variables:
+#         PYTHON_VERSION_TO_USE: "3.6"
+#         GIT_SUBMODULE_STRATEGY: recursive
 
-tests_py38:
+tests_py38:    # ubuntu20
     <<: *test_template
     variables:
         PYTHON_VERSION_TO_USE: "3.8"
         GIT_SUBMODULE_STRATEGY: recursive
 
-tests_py310:
+tests_py310:    # ubuntu22
     <<: *test_template
     variables:
         PYTHON_VERSION_TO_USE: "3.10"
+        GIT_SUBMODULE_STRATEGY: recursive
+
+tests_py311:    # current
+    <<: *test_template
+    variables:
+        PYTHON_VERSION_TO_USE: "3.11"
         GIT_SUBMODULE_STRATEGY: recursive

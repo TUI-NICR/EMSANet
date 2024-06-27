@@ -35,27 +35,33 @@ paper ([IEEE Xplore](https://ieeexplore.ieee.org/document/9892852), [arXiv](http
 *Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments*,
 in IEEE International Joint Conference on Neural Networks (IJCNN), pp. 1-10, 2022.
 
+<details>
+<summary>BibTeX</summary>
+ 
 ```bibtex
 @inproceedings{emsanet2022ijcnn,
-  title={Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments},
-  author={Seichter, Daniel and Fischedick, S{\"o}hnke and K{\"o}hler, Mona and Gross, Horst-Michael},
-  booktitle={IEEE International Joint Conference on Neural Networks (IJCNN)},
-  year={2022},
-  volume={},
-  number={},
-  pages={1-10},
-  doi={10.1109/IJCNN55064.2022.9892852}
+    title={Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments},
+    author={Seichter, Daniel and Fischedick, S{\"o}hnke and K{\"o}hler, Mona and Gross, Horst-Michael},
+    booktitle={IEEE International Joint Conference on Neural Networks (IJCNN)},
+    year={2022},
+    volume={},
+    number={},
+    pages={1-10},
+    doi={10.1109/IJCNN55064.2022.9892852}
 }
 
 @article{emsanet2022,
-  title={Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments},
-  author={Seichter, Daniel and Fischedick, S{\"o}hnke and K{\"o}hler, Mona and Gross, Horst-Michael},
-  journal={arXiv preprint arXiv:2207.04526},
-  year={2022}
+    title={Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments},
+    author={Seichter, Daniel and Fischedick, S{\"o}hnke and K{\"o}hler, Mona and Gross, Horst-Michael},
+    journal={arXiv preprint arXiv:2207.04526},
+    year={2022}
 }
 ```
+
 Note that the preprint was accepted to be published in IEEE International Joint 
 Conference on Neural Networks (IJCNN) 2022.
+
+</details>
 
 
 ## Content
@@ -82,26 +88,35 @@ There are subsections for different things to do:
 
 2. Create conda environment and install all dependencies:
     ```bash
-    # option 1: create conda environment from provided YAML file with PyTorch 1.10 (original publication)
+    # option 1: create conda environment from provided YAML file with Python 3.11.0 and PyTorch 2.3 (latest tested version)
     # note that this environment does not include detectron2 that is required for ./external
-    conda env create -f emsanet_environment_pytorch_1_10.yml
-    conda activate emsanet
+    conda env create -f emsanet_environment_2024.yml
+    # for macOS, use:
+    # conda env create -f emsanet_environment_2024_mac.yml
+    conda activate emsanet2024
     ```
 
     ```bash
-    # option 2: create conda environment from provided YAML file with PyTorch 1.13 (follow-up work)
+    # option 2: create conda environment from provided YAML file with Python 3.8.16 and PyTorch 1.13 (follow-up work)
     # note that this environment does not include detectron2 that is required for ./external
     conda env create -f emsanet_environment_pytorch_1_13.yml
     conda activate emsanet
     ```
 
     ```bash
-    # option 3: create new conda environment manually
+    # option 3: create conda environment from provided YAML file with Python 3.8.13 and PyTorch 1.10 (original publication)
+    # note that this environment does not include detectron2 that is required for ./external
+    conda env create -f emsanet_environment_pytorch_1_10.yml
+    conda activate emsanet
+    ```
+
+    ```bash
+    # option 4: create new conda environment manually (follow-up work)
     conda create -n emsanet python=3.8 anaconda
     conda activate emsanet
 
     # remaining conda dependencies
-    # note: PyTorch 2.0 works as well
+    # note: PyTorch 2.0+ works as well
     conda install pytorch=1.13.0 torchvision=0.14.0 torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
 
     # remaining pip dependencies
@@ -122,10 +137,10 @@ There are subsections for different things to do:
 3. Install submodule packages:
     ```bash
     # dataset package
-    python -m pip install -e ./lib/nicr-scene-analysis-datasets[withpreparation]
+    python -m pip install -e "./lib/nicr-scene-analysis-datasets[withpreparation]"
 
     # multitask scene analysis package
-    python -m pip install -e ./lib/nicr-multitask-scene-analysis
+    python -m pip install -e "./lib/nicr-multitask-scene-analysis"
     ```
 
 4. Prepare datasets:  
@@ -134,9 +149,12 @@ There are subsections for different things to do:
     [SUNRGB-D](https://rgbd.cs.princeton.edu/), and 
     [Hypersim](https://machinelearning.apple.com/research/hypersim). 
 
-    Please follow the instructions given in `./lib/nicr-scene-analysis-datasets` or [HERE](https://github.com/TUI-NICR/nicr-scene-analysis-datasets/tree/v0.5.3) to prepare the datasets. 
+    Please follow the instructions given in `./lib/nicr-scene-analysis-datasets` or [HERE](https://github.com/TUI-NICR/nicr-scene-analysis-datasets/tree/v0.7.0) to prepare the datasets. 
     In the following, we assume that they are stored at `./datasets`
 
+
+    > Use `--instances-version emsanet` when preparing the SUNRGB-D dataset to reproduce reported results. 
+      See notes in evaluation section for more details.
 
 ## Results & Weights
 We provide the weights for our selected EMSANet-R34-NBt1D (with ResNet34 NBt1D backbones) on NYUv2 and SUNRGB-D*:
@@ -169,7 +187,7 @@ Note that the training was done with additional normal estimation task.
 
 Download and extract the models to `./trained_models`.
 
-> Check out our follow-up works [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer) and [Panoptic Mapping](https://github.com/TUI-NICR/panoptic-mapping) for results and weights on ScanNet dataset. 
+> Check out our follow-up works [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer) and [Panoptic Mapping](https://github.com/TUI-NICR/panoptic-mapping) for even better results and experiments on the ScanNet dataset as well. 
 
 ## Evaluation
 To reproduce results for the full multi-task approach, use `main.py` together 
@@ -278,20 +296,33 @@ Validation results:
 
 ### SUNRGB-D
 
-> Do not use `nicr-scene-analysis-datasets` >= 0.6.0 if you want to reproduce 
-  reported EMSANet paper results. We refactored and updated instance creation 
-  from 3D boxes for SUNRGB-D in version 0.6.0. The resulting annotations 
+> We refactored and updated instance annotation creation from 3D boxes for 
+  SUNRGB-D in `nicr-scene-analysis-datasets` == 0.6.0. The resulting annotations 
   feature a lot of more instances; however, it is also changing the ground 
-  truth for the evaluation below. For more details, we refer to our follow-up
-  work Panoptic Mapping([GitHub](https://github.com/TUI-NICR/panoptic-mapping), 
+  truth for the evaluation below. For more details and a comparison between 
+  both versions, we refer to our follow-up work Panoptic 
+  Mapping([GitHub](https://github.com/TUI-NICR/panoptic-mapping), 
   [arXiv](https://arxiv.org/abs/2309.13635)) that proposes the refined 
-  annotations for SUNRGB-D. 
+  annotations.
+  To reproduce reported EMSANet paper results either use 
+  `nicr-scene-analysis-datasets` >= 0.7.0 and prepare the SUNRGB-D dataset with 
+  `--instances-version emsanet` (or go back with both reposities and use 
+  `nicr-scene-analysis-datasets` <= 0.6.0).
+  For backward compatibility, i.e., to still be able to load a SUNRGB-D dataset 
+  prepared with `nicr-scene-analysis-datasets` < 0.7.0, you can pass 
+  `--sunrgbd-instances-version anyold` to `main.py`; however, use this only if
+  you know what you are doing!  
+  We recommend re-preparing the SUNRGB-D dataset 
+  with `nicr-scene-analysis-datasets` >= 0.7.0 as described above to avoid 
+  any confusion.
+
 
 To evaluate on SUNRGB-D (without pretraining on Hypersim), run:
 ```bash
 python main.py \
     --dataset sunrgbd \
     --dataset-path ./datasets/sunrgbd \
+    --sunrgbd-instances-version emsanet \
     --sunrgbd-depth-do-not-force-mm \
     --tasks semantic scene instance orientation \
     --enable-panoptic \
@@ -338,6 +369,7 @@ To evaluate on SUNRGB-D (with pretraining on Hypersim), run:
 python main.py \
     --dataset sunrgbd \
     --dataset-path ./datasets/sunrgbd \
+    --sunrgbd-instances-version emsanet \
     --sunrgbd-depth-do-not-force-mm \
     --tasks semantic scene instance orientation \
     --enable-panoptic \
@@ -416,7 +448,7 @@ python main.py \
     --wandb-mode disabled
 ```
 Similarly, the same can be applied to SUNRGB-D 
-(see parameters in [evaluation](#evaluation) section).
+(see parameters in [evaluation section](#evaluation)).
 
 ### Sample Inference
 Use `inference_samples.py` to apply a trained model to the sample from a 
@@ -484,8 +516,8 @@ assigned to the void class.
 ### Time Inference
 
 > Note, for newer versions of TensorRT `onnx2trt` is not required (and also
-not available) anymore. Pass `--trt-use-get-engine-v2` to 
-`inference_time_whole_model.py` to use TensoRT's Python API instead.
+  not available) anymore. Pass `--trt-use-get-engine-v2` to
+  `inference_time_whole_model.py` to use TensoRT's Python API instead.
 
 We timed the inference on an NVIDIA Jetson AGX Xavier with Jetpack 4.6 
 (TensorRT 8.0.1.6, PyTorch 1.10.0).
@@ -561,6 +593,10 @@ python main.py \
     --wandb-mode disabled
 ```
 
+> To reproduce the results reported in our EMSANet paper for SUNRGB-D, make
+sure to prepare and use the correct dataset version for SUNRGB-D (see note in 
+[evaluation section](#sunrgb-d)).
+
 For more options, we refer to `./emsanet/args.py` or simply run:
 
 ```bash
@@ -569,7 +605,31 @@ python main.py --help
 
 ## Changelog
 
-> Most relevant changes are listed below. Note that backward compatibility might be broken. However, compatibility to original publication is retained.
+> Most relevant changes are listed below. Note that backward compatibility 
+  might be broken. However, compatibility to original publication is retained.
+
+**Jun 26, 2024**
+- add more recent and thinned-out environment (`emsanet_environment_2024.yml`) 
+  with Python 3.11 and latest tested PyTorch 2.3
+- add support for MPS device (see `--device` argument in `emsanet/args.py`):
+    - only tested for inference
+    - might be slower as not all instance postprocessing operations are 
+      supported yet (we use some CPU fallbacks)
+- add support for CPU device (see `--device` argument in `emsanet/args.py`)
+- fix bug in visualization (only with MPS/CPU device)
+- visualize ground truth in fullres as well
+- visualize semantic and instance of ground-truth panoptic separately
+- some doc string fixes
+- dump instance meta dicts as well when visualizing validation
+- add possibility to visualize side outputs during validation
+- bump `lib/nicr-scene-analysis-datasets` to version 0.7.0
+- bump `lib/nicr-multitask-scene-analysis` to version 0.2.3
+- minor fix in `inference_time_whole_model.py`
+- enable weight loading for single-task semantic (similar to ESANet) from 
+  multi-task checkpoint (e.g., trained EMSANet)
+- align branches for EMSANet (this repository) and follow-up work Panoptic 
+  Mapping ([see here](https://github.com/TUI-NICR/panoptic-mapping)) - only
+  one main branch but different versions for SUNRGB-D instances
 
 **Sep 23, 2023**
 - small fix in dataset path parsing (do not force lower case)
@@ -586,7 +646,10 @@ python main.py --help
 - bump `nicr-scene-analysis-datasets` to version 0.5.4
 
 **Apr 20, 2023**
-- bump `nicr-multitask-scene-analysis` to version 0.2.1 to fix a small bug in the instance task helper: the MAAE metric object was not reset after computing the metric value (at the end of an epoch) - see [evaluation section](#evaluation) for more details
+- bump `nicr-multitask-scene-analysis` to version 0.2.1 to fix a small bug in 
+  the instance task helper: the MAAE metric object was not reset after 
+  computing the metric value (at the end of an epoch) - 
+  see [evaluation section](#evaluation) for more details
 
 **Mar 29, 2023**
 - bump `nicr-scene-analysis-datasets` to version 0.5.2
@@ -594,7 +657,8 @@ python main.py --help
 - refactor `args.py` (backward compatible)
 - add support MLP-based decoders (SegFormer-like)
 - add support RGB-D modality (RGB and depth concatenated as 4 channels inputs)
-- add script for dataset inference `inference_dataset.py` for ScanNet benchmark and semantic/panoptic mapping
+- add script for dataset inference `inference_dataset.py` for ScanNet 
+  benchmark and semantic/panoptic mapping
 - add support for ScanNet dataset
 - add support for concatenated datasets, e.g., SUNRGB-D and ScanNet
 - refactor batch and prediction visualization

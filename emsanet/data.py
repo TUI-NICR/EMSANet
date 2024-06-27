@@ -185,12 +185,12 @@ def get_dataset(args, split):
         },
         'scenenetrgbd': {
             'depth_mode': dataset_depth_mode,
-            'semantic_n_classes': 13
         },
         'sunrgbd': {
             'depth_mode': dataset_depth_mode,
             # note, EMSANet paper uses False for 'depth_force_mm'
             'depth_force_mm': not args.sunrgbd_depth_do_not_force_mm,
+            'instances_version': args.sunrgbd_instances_version,
             'semantic_use_nyuv2_colors': True,
             'scene_use_indoor_domestic_labels': not args.use_original_scene_labels
         },

@@ -55,6 +55,16 @@ def load_weights(args, model, state_dict, verbose=True):
                 if all(n in key for n in ('instance_decoder', 'head', 'upsampling')):
                     state_dict[key] = weight[:3]
 
+    if len(args.tasks) == 1 and args.tasks[0] == 'semantic':
+        # back-porting the semantic part (EMSANet -> ESANet)
+        # handle the case when weights are from panoptic training
+        # note: deleting unused keys is done below
+        state_dict = {
+            k.replace('decoders.panoptic_helper.semantic_decoder.',
+                      'decoders.semantic_decoder.'): v
+            for k, v in state_dict.items()
+        }
+
     if len(state_dict) != len(model_state_dict):
         # loaded state dict is different, run a deeper analysis
         # this can happen if a model trained with deviating tasks is loaded
