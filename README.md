@@ -156,7 +156,8 @@ There are subsections for different things to do:
     [SUNRGB-D](https://rgbd.cs.princeton.edu/), and 
     [Hypersim](https://machinelearning.apple.com/research/hypersim). 
 
-    Please follow the instructions given in `./lib/nicr-scene-analysis-datasets` or [HERE](https://github.com/TUI-NICR/nicr-scene-analysis-datasets/tree/v0.7.0) to prepare the datasets. 
+    Please follow the instructions given in `./lib/nicr-scene-analysis-datasets` or 
+    [HERE](https://github.com/TUI-NICR/nicr-scene-analysis-datasets/tree/v0.8.3) to prepare the datasets. 
     In the following, we assume that they are stored at `./datasets`
 
     > ⚠️ Use `--instances-version emsanet` when preparing the SUNRGB-D dataset to reproduce reported paper results. 
