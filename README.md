@@ -213,7 +213,7 @@ find . -name "*.tar.gz" -exec tar -xvzf {} \;
 
 > [!TIP] 
 > Check out our follow-up works [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer),
-  [Panoptic Mapping](https://github.com/TUI-NICR/panoptic-mapping), and
+  [PanopticNDT](https://github.com/TUI-NICR/panoptic-mapping), and
   [DVEFormer](https://github.com/TUI-NICR/DVEFormer) for even better results and further experiments on the ScanNet 
   dataset.
 
@@ -334,7 +334,7 @@ Validation results:
 > We refactored and updated the instance annotation creation from 3D boxes for SUNRGB-D in 
   `nicr-scene-analysis-datasets` == 0.6.0. The resulting annotations feature a lot of more instances; however, it is 
   also changing the ground truth for the evaluation below. For more details and a comparison between both versions, we 
-  refer to our follow-up work Panoptic Mapping([GitHub](https://github.com/TUI-NICR/panoptic-mapping), 
+  refer to our follow-up work PanopticNDT([GitHub](https://github.com/TUI-NICR/panoptic-mapping), 
   [arXiv](https://arxiv.org/abs/2309.13635)) that proposes the refined annotations.
   To reproduce reported EMSANet paper results either use `nicr-scene-analysis-datasets` >= 0.7.0 and prepare the 
   SUNRGB-D dataset with `--instances-version emsanet` (or go back with both reposities and use 
@@ -648,7 +648,7 @@ python main.py --help
 - add more recent environment (`env_emsanet2026.yaml` and `env_emsanet2026_mac.yaml`) with Python 3.12 and latest 
   tested PyTorch 2.9.1
 - remove old environment files, only point to relevant commit hashes for original publication (2022) and follow-up work 
-  Panoptic Mapping (2023)
+  PanopticNDT (2023)
 - use ruff for linting
 - bump `lib/nicr-scene-analysis-datasets` to version 0.8.3
 - bump `lib/nicr-multitask-scene-analysis` to version 0.3.1
