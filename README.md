@@ -113,8 +113,8 @@ There are subsections for different things to do:
     conda activate emsanet2026
     ```
 
-    Note that this environment also works for our follow-up works 
-    [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer/tree/release_2026_01_04) and 
+    > Note that this environment also works with the latest releases of our follow-up works 
+    [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer) and 
     [PanopticNDT](https://github.com/TUI-NICR/panoptic-mapping/tree/release_2026_01_04).
 
     **Option 2**: Create your own conda environment:
@@ -139,7 +139,7 @@ There are subsections for different things to do:
     [ff1d1ab](https://github.com/TUI-NICR/EMSANet/tree/ff1d1ab68e1bf386d081433c676d3a74d2beed71) and follow the 
     instructions given there.
 
-    > Note, these environments do not include detectron2 that is required for ./external.
+    > Note that these environments do not include detectron2 that is required for ./external.
 
 3. Install submodule packages:
     ```bash
@@ -159,8 +159,7 @@ There are subsections for different things to do:
     Please follow the instructions given in `./lib/nicr-scene-analysis-datasets` or [HERE](https://github.com/TUI-NICR/nicr-scene-analysis-datasets/tree/v0.7.0) to prepare the datasets. 
     In the following, we assume that they are stored at `./datasets`
 
-    > [!CAUTION]
-    > Use `--instances-version emsanet` when preparing the SUNRGB-D dataset to reproduce reported paper results. 
+    > ⚠️ Use `--instances-version emsanet` when preparing the SUNRGB-D dataset to reproduce reported paper results. 
     > See the notes in evaluation section for more details.
 
 ## Results & Weights
