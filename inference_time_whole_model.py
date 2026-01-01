@@ -377,7 +377,6 @@ def time_inference_tensorrt(onnx_filepath,
     timings = []
     pointers = [int(in_.gpu) for in_ in input_bindings+output_bindings]
     in_keys = [b.name for b in input_bindings]
-    out_keys = [b.name for b in output_bindings]
 
     outs = []
     for i, input_ in enumerate(inputs):
@@ -470,7 +469,7 @@ if __name__ == '__main__':
         print('TensorRT version:', trt.__version__)
 
     results_path = os.path.join(os.path.dirname(__file__),
-                                f'inference_results',
+                                'inference_results',
                                 args.dataset)
     os.makedirs(results_path, exist_ok=True)
 

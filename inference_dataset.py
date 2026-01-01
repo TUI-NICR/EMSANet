@@ -680,7 +680,7 @@ def main():
     if 'epoch' in checkpoint:
         print(f"-> Epoch: {checkpoint['epoch']}")
     if args.debug and 'logs' in checkpoint:
-        print(f"-> Logs/Metrics:")
+        print("-> Logs/Metrics:")
         pprint(checkpoint['logs'])
 
     state_dict = checkpoint['state_dict']
