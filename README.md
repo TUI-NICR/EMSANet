@@ -4,7 +4,7 @@
 
 > [!TIP]
 > You may also want to have a look at our follow-up works:  
-• [EMSFormer](https://github.com/TUI-NICR/EMSFormer) [IJCNN 2023] – multi-task approach, better results for semantic segmentation, and cleaner and more extendable code base  
+• [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer) [IJCNN 2023] – multi-task approach, better results for semantic segmentation, and cleaner and more extendable code base  
 • [DVEFormer](https://github.com/TUI-NICR/DVEFormer) [IROS 2025] – efficient prediction of dense visual embeddings instead of fixed semantic classes for enhanced scene understanding  
 • [SemanticNDT](https://github.com/TUI-NICR/semantic-mapping) [ICRA 2022] and [PanopticNDT](https://github.com/TUI-NICR/panoptic-mapping) [IROS 2023] – downstream application for semantic/panoptic mapping.
 
@@ -113,9 +113,8 @@ There are subsections for different things to do:
     conda activate emsanet2026
     ```
 
-    > [!NOTE]
-    > Note this environment also works for our follow-up works 
-    [EMSFormer](https://github.com/TUI-NICR/EMSFormer/tree/release_2026_01_04) and 
+    Note that this environment also works for our follow-up works 
+    [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer/tree/release_2026_01_04) and 
     [PanopticNDT](https://github.com/TUI-NICR/panoptic-mapping/tree/release_2026_01_04).
 
     **Option 2**: Create your own conda environment:
@@ -140,8 +139,7 @@ There are subsections for different things to do:
     [ff1d1ab](https://github.com/TUI-NICR/EMSANet/tree/ff1d1ab68e1bf386d081433c676d3a74d2beed71) and follow the 
     instructions given there.
 
-    > [!NOTE]
-    > These environments do not include detectron2 that is required for ./external.
+    > Note, these environments do not include detectron2 that is required for ./external.
 
 3. Install submodule packages:
     ```bash
