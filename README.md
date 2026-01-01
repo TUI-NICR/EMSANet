@@ -629,8 +629,18 @@ python main.py --help
 
 ## Changelog
 
-> Most relevant changes are listed below. Note that backward compatibility 
-  might be broken. However, compatibility to original publication is retained.
+> [!NOTE]
+> Most relevant changes are listed below. Note that backward compatibility might be broken. 
+  However, compatibility to original publication is retained.
+
+**Jan 04, 2026**
+- add more recent environment (`env_emsanet2026.yaml` and `env_emsanet2026_mac.yaml`) 
+  with Python 3.12 and latest tested PyTorch 2.9.1
+- remove old environment files, only point to relevant commit hashes for 
+  original publication (2022) and follow-up work Panoptic Mapping (2023)
+- use ruff for linting
+- bump `lib/nicr-scene-analysis-datasets` to version 0.8.3
+- bump `lib/nicr-multitask-scene-analysis` to version 0.3.1
 
 **Jun 27, 2024**
 - add more recent and thinned-out environment (`emsanet_environment_2024.yml`) 
