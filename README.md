@@ -137,7 +137,7 @@ There are subsections for different things to do:
     > Note, as of 2025-01-01, the environment from 2023 still works. Consider installing the submodules
     (see step 3 below) with additional `--no-deps` option to skip installing too new dependencies.
 
-    **Option 4**: Environment from 2022 - original publication (Python 3.8.13, PyTorch 1.10.1 (sm_37 - sm_80), see 
+    **Option 4**: Environment from 2022 - original publication (Python 3.8.13, PyTorch 1.10.1 (sm_37 - sm_86), see 
     `env_emsanet2022.yaml` for reference) - go back to
     [ff1d1ab](https://github.com/TUI-NICR/EMSANet/tree/ff1d1ab68e1bf386d081433c676d3a74d2beed71) and follow the 
     instructions given there.
