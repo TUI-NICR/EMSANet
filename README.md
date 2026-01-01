@@ -1,32 +1,27 @@
 # EMSANet: Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/efficient-multi-task-rgb-d-scene-analysis-for/semantic-segmentation-on-nyu-depth-v2)](https://paperswithcode.com/sota/semantic-segmentation-on-nyu-depth-v2?p=efficient-multi-task-rgb-d-scene-analysis-for)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/efficient-multi-task-rgb-d-scene-analysis-for/semantic-segmentation-on-sun-rgbd)](https://paperswithcode.com/sota/semantic-segmentation-on-sun-rgbd?p=efficient-multi-task-rgb-d-scene-analysis-for)
 
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/efficient-multi-task-rgb-d-scene-analysis-for/panoptic-segmentation-on-nyu-depth-v2)](https://paperswithcode.com/sota/panoptic-segmentation-on-nyu-depth-v2?p=efficient-multi-task-rgb-d-scene-analysis-for)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/efficient-multi-task-rgb-d-scene-analysis-for/panoptic-segmentation-on-sun-rgbd)](https://paperswithcode.com/sota/panoptic-segmentation-on-sun-rgbd?p=efficient-multi-task-rgb-d-scene-analysis-for)
+> 🔥 **2026-01-04**: updated to keep it working in 2026+ (see full [changelog](#changelog) below)
 
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/efficient-multi-task-rgb-d-scene-analysis-for/scene-classification-unified-classes-on-nyu)](https://paperswithcode.com/sota/scene-classification-unified-classes-on-nyu?p=efficient-multi-task-rgb-d-scene-analysis-for)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/efficient-multi-task-rgb-d-scene-analysis-for/scene-classification-unified-classes-on-sun)](https://paperswithcode.com/sota/scene-classification-unified-classes-on-sun?p=efficient-multi-task-rgb-d-scene-analysis-for)
+> [!TIP]
+> You may also want to have a look at our follow-up works:  
+• [EMSFormer](https://github.com/TUI-NICR/EMSFormer) [IJCNN 2023] – multi-task approach, better results for semantic segmentation, and cleaner and more extendable code base  
+• [DVEFormer](https://github.com/TUI-NICR/DVEFormer) [IROS 2025] – efficient prediction of dense visual embeddings instead of fixed semantic classes for enhanced scene understanding  
+• [SemanticNDT](https://github.com/TUI-NICR/semantic-mapping) [ICRA 2022] and [PanopticNDT](https://github.com/TUI-NICR/panoptic-mapping) [IROS 2023] – downstream application for semantic/panoptic mapping.
 
-> **Updated on 2023-03-29** for our follow-up works [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer) and [Panoptic Mapping](https://github.com/TUI-NICR/panoptic-mapping).
+This repository contains the code to our paper "EMSANet: Efficient Multi-Task RGB-D Scene Analysis for Indoor 
+Environments" ([IEEE Xplore](https://ieeexplore.ieee.org/document/9892852), [arXiv](https://arxiv.org/pdf/2207.04526.pdf))
 
-This repository contains the code to our paper "EMSANet: Efficient Multi-Task 
-RGB-D Scene Analysis for Indoor Environments" ([IEEE Xplore](https://ieeexplore.ieee.org/document/9892852), [arXiv](https://arxiv.org/pdf/2207.04526.pdf))
-
-Our efficient multi-task approach for RGB-D scene analysis (EMSANet) 
-simultaneously performs semantic and instance segmentation (panoptic 
-segmentation), instance orientation estimation, and scene classification.
+Our efficient multi-task approach for RGB-D scene analysis (EMSANet) simultaneously performs semantic and instance 
+segmentation (panoptic segmentation), instance orientation estimation, and scene classification.
 
 ![model architecture](./doc/EMSANet-model.png)
 
-This repository contains the code for training, evaluating, and applying our 
-networks. Furthermore, we provide code for converting the model to ONNX and 
-TensorRT, as well as for measuring the inference time.
+This repository contains the code for training, evaluating, and applying our networks. Furthermore, we provide code 
+for converting the model to ONNX and TensorRT, as well as for measuring the inference time.
 
 
 ## License and Citations
-The source code is published under Apache 2.0 license, see 
-[license file](LICENSE) for details.
+The source code is published under Apache 2.0 license, see [license file](LICENSE) for details.
 
 If you use the source code or the network weights, please cite the following 
 paper ([IEEE Xplore](https://ieeexplore.ieee.org/document/9892852), [arXiv](https://arxiv.org/pdf/2207.04526.pdf)):
@@ -40,21 +35,21 @@ in IEEE International Joint Conference on Neural Networks (IJCNN), pp. 1-10, 202
  
 ```bibtex
 @inproceedings{emsanet2022ijcnn,
-    title={Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments},
-    author={Seichter, Daniel and Fischedick, S{\"o}hnke and K{\"o}hler, Mona and Gross, Horst-Michael},
-    booktitle={IEEE International Joint Conference on Neural Networks (IJCNN)},
-    year={2022},
-    volume={},
-    number={},
-    pages={1-10},
-    doi={10.1109/IJCNN55064.2022.9892852}
+    title     = {Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments},
+    author    = {Seichter, Daniel and Fischedick, S{\"o}hnke and K{\"o}hler, Mona and Gross, Horst-Michael},
+    booktitle = {IEEE International Joint Conference on Neural Networks (IJCNN)},
+    year      = {2022},
+    volume    = {},
+    number    = {},
+    pages     = {1-10},
+    doi       = {10.1109/IJCNN55064.2022.9892852}
 }
 
 @article{emsanet2022,
-    title={Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments},
-    author={Seichter, Daniel and Fischedick, S{\"o}hnke and K{\"o}hler, Mona and Gross, Horst-Michael},
-    journal={arXiv preprint arXiv:2207.04526},
-    year={2022}
+    title     = {Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments},
+    author    = {Seichter, Daniel and Fischedick, S{\"o}hnke and K{\"o}hler, Mona and Gross, Horst-Michael},
+    journal   = {arXiv preprint arXiv:2207.04526},
+    year      = {2022}
 }
 ```
 
@@ -63,6 +58,29 @@ Conference on Neural Networks (IJCNN) 2022.
 
 </details>
 
+This work is also embedded in a broader research context that is described in the corresponding PhD thesis:
+
+> Seichter, D. *Szenen- und Umgebungsanalyse in der mobilen Assistenzrobotik*, Ilmenau, Germany, 2025,
+  DOI: [10.22032/dbt.64081](https://doi.org/10.22032/dbt.64081).
+
+The dissertation is written in German, but it can certainly be translated automatically. 😉
+
+<details>
+<summary>BibTeX</summary>
+
+```bibtex
+@phdthesis{seichter2025phd,
+  author    = {Seichter, Daniel},
+  title     = {Szenen- und Umgebungsanalyse in der mobilen Assistenzrobotik},
+  year      = {2025},
+  note      = {Dissertation, Technische Universit{\"a}t Ilmenau, 2024},
+  doi       = {10.22032/dbt.64081},
+  url       = {https://doi.org/10.22032/dbt.64081},
+  language  = {de}
+}
+```
+
+</details>
 
 ## Content
 There are subsections for different things to do:
@@ -86,60 +104,51 @@ There are subsections for different things to do:
     cd EMSANet
     ```
 
-2. Create conda environment and install all dependencies:
+2. Create conda environment and install all dependencies:  
+    **Option 1**: Updated environment from 2026 (Python 3.12, PyTorch 2.9.1):
     ```bash
-    # option 1: create conda environment from provided YAML file with Python 3.11.0 and PyTorch 2.3 (latest tested version)
-    # note that this environment does not include detectron2 that is required for ./external
-    conda env create -f emsanet_environment_2024.yml
-    # for macOS, use:
-    # conda env create -f emsanet_environment_2024_mac.yml
-    conda activate emsanet2024
+    conda env create -f env_emsanet2026_mac.yaml  # macos with mps
+    conda env create -f env_emsanet2026.yaml   # linux with cuda
+
+    conda activate emsanet2026
     ```
 
+    > [!NOTE]
+    > Note this environment also works for our follow-up works 
+    [EMSFormer](https://github.com/TUI-NICR/EMSFormer/tree/release_2026_01_04) and 
+    [PanopticNDT](https://github.com/TUI-NICR/panoptic-mapping/tree/release_2026_01_04).
+
+    **Option 2**: Create your own conda environment:
     ```bash
-    # option 2: create conda environment from provided YAML file with Python 3.8.16 and PyTorch 1.13 (follow-up work)
-    # note that this environment does not include detectron2 that is required for ./external
-    conda env create -f emsanet_environment_pytorch_1_13.yml
-    conda activate emsanet
+    conda create --name "emsanet2026" python=3.12
+    conda activate emsanet2026
+
+    python -m pip install numpy opencv-python matplotlib tqdm
+    python -m pip install torch torchvision
+    python -m pip install torchmetrics
+    python -m pip install wandb
     ```
 
-    ```bash
-    # option 3: create conda environment from provided YAML file with Python 3.8.13 and PyTorch 1.10 (original publication)
-    # note that this environment does not include detectron2 that is required for ./external
-    conda env create -f emsanet_environment_pytorch_1_10.yml
-    conda activate emsanet
-    ```
+    **Option 3**: Environment from 2023 - original publication of our follow-up work 
+    [PanopticNDT](https://github.com/TUI-NICR/panoptic-mapping) (Python 3.8.16, PyTorch 1.13.0, see 
+    `env_emsanet2023.yaml` for reference) - go back to
+    [9d2ade4](https://github.com/TUI-NICR/EMSANet/tree/9d2ade475ba44c6bd82f6fac6d44ac82086bcd53) and follow the 
+    instructions given there.
+ 
+    **Option 4**: Environment from 2022 - original publication (Python 3.8.13, PyTorch 1.10.1, see 
+    `env_emsanet2022.yaml` for reference) - go back to
+    [ff1d1ab](https://github.com/TUI-NICR/EMSANet/tree/ff1d1ab68e1bf386d081433c676d3a74d2beed71) and follow the 
+    instructions given there.
 
-    ```bash
-    # option 4: create new conda environment manually (follow-up work)
-    conda create -n emsanet python=3.8 anaconda
-    conda activate emsanet
-
-    # remaining conda dependencies
-    # note: PyTorch 2.0+ works as well
-    conda install pytorch=1.13.0 torchvision=0.14.0 torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
-
-    # remaining pip dependencies
-    python -m pip install 'opencv-python>=4.2.0.34'    # newer versions may work as well
-    python -m pip install torchmetrics==0.10.2
-    python -m pip install wandb==0.13.6
-
-    # optional dependencies
-    # -> test dependencies and ./external only
-    conda install 'protobuf<=3.19.1'    # for onnx
-    python -m pip install onnx==1.13.1
-    python -m pip install git+https://github.com/cocodataset/panopticapi.git
-    # -> for ./external only
-    # see: https://detectron2.readthedocs.io/en/latest/tutorials/install.html
-    python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
-    ```
+    > [!NOTE]
+    > These environments do not include detectron2 that is required for ./external.
 
 3. Install submodule packages:
     ```bash
     # dataset package
     python -m pip install -e "./lib/nicr-scene-analysis-datasets[withpreparation]"
 
-    # multitask scene analysis package
+    # multitask-scene-analysis package
     python -m pip install -e "./lib/nicr-multitask-scene-analysis"
     ```
 
@@ -152,9 +161,9 @@ There are subsections for different things to do:
     Please follow the instructions given in `./lib/nicr-scene-analysis-datasets` or [HERE](https://github.com/TUI-NICR/nicr-scene-analysis-datasets/tree/v0.7.0) to prepare the datasets. 
     In the following, we assume that they are stored at `./datasets`
 
-
-    > Use `--instances-version emsanet` when preparing the SUNRGB-D dataset to reproduce reported results. 
-      See notes in evaluation section for more details.
+    > [!CAUTION]
+    > Use `--instances-version emsanet` when preparing the SUNRGB-D dataset to reproduce reported paper results. 
+    > See the notes in evaluation section for more details.
 
 ## Results & Weights
 We provide the weights for our selected EMSANet-R34-NBt1D (with ResNet34 NBt1D backbones) on NYUv2 and SUNRGB-D*:
