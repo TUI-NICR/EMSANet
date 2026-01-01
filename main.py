@@ -603,12 +603,15 @@ def main():
             epoch_logs.update(metrics)
 
             # validation
-            if (args.validation_force_interval is None) or (epoch == 0):
-                force = False
-            else:
-                force = (epoch % args.validation_force_interval) == 0
+            force = False
+            if args.validation_force_interval is not None:
+                # force validation at given interval
+                force = ((epoch + 1) % args.validation_force_interval) == 0
+            if (epoch + 1) == args.n_epochs:
+                # it is the last epoch, force validation
+                force = True
 
-            if (epoch >= (args.n_epochs * args.validation_skip)) or force:
+            if ((epoch + 1) >= (args.n_epochs * args.validation_skip)) or force:
                 run.set_inference_mode()
                 # we have multiple valid datasets due to multiple resolutions
                 batch_idx = 0

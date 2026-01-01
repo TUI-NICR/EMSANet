@@ -641,6 +641,7 @@ python main.py --help
 - use ruff for linting
 - bump `lib/nicr-scene-analysis-datasets` to version 0.8.3
 - bump `lib/nicr-multitask-scene-analysis` to version 0.3.1
+- fix off by one issue for `--validation-force-interval` argument and force validation at the end of training
 
 **Jun 27, 2024**
 - add more recent and thinned-out environment (`emsanet_environment_2024.yml`) 
