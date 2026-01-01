@@ -108,7 +108,7 @@ There are subsections for different things to do:
     **Option 1**: Updated environment from 2026 (Python 3.12, PyTorch 2.9.1):
     ```bash
     conda env create -f env_emsanet2026_mac.yaml  # macos with mps
-    conda env create -f env_emsanet2026.yaml   # linux with cuda
+    conda env create -f env_emsanet2026.yaml   # linux with cuda (sm_70 - sm_120)
 
     conda activate emsanet2026
     ```
@@ -129,15 +129,18 @@ There are subsections for different things to do:
     ```
 
     **Option 3**: Environment from 2023 - original publication of our follow-up work 
-    [PanopticNDT](https://github.com/TUI-NICR/panoptic-mapping) (Python 3.8.16, PyTorch 1.13.0, see 
+    [PanopticNDT](https://github.com/TUI-NICR/panoptic-mapping) (Python 3.8.16, PyTorch 1.13.0 (sm_37 - sm_86), see 
     `env_emsanet2023.yaml` for reference) - go back to
     [9d2ade4](https://github.com/TUI-NICR/EMSANet/tree/9d2ade475ba44c6bd82f6fac6d44ac82086bcd53) and follow the 
     instructions given there.
  
-    **Option 4**: Environment from 2022 - original publication (Python 3.8.13, PyTorch 1.10.1, see 
+    **Option 4**: Environment from 2022 - original publication (Python 3.8.13, PyTorch 1.10.1 (sm_37 - sm_80), see 
     `env_emsanet2022.yaml` for reference) - go back to
     [ff1d1ab](https://github.com/TUI-NICR/EMSANet/tree/ff1d1ab68e1bf386d081433c676d3a74d2beed71) and follow the 
     instructions given there.
+
+    > Note, as of 2025-01-01, the environments from 2023 and even 2022 still work. Consider installing the submodules
+    (see step 3 below) with additional `--no-deps` option to skip installing too new dependencies.
 
     > Note that these environments do not include detectron2 that is required for ./external.
 
@@ -209,22 +212,29 @@ find . -name "*.tar.gz" -exec tar -xvzf {} \;
 ```
 
 > [!TIP] 
-> Check out our follow-up works [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer) and 
-  [Panoptic Mapping](https://github.com/TUI-NICR/panoptic-mapping) for even better results and experiments on the 
-  ScanNet dataset as well. 
+> Check out our follow-up works [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer),
+  [Panoptic Mapping](https://github.com/TUI-NICR/panoptic-mapping), and
+  [DVEFormer](https://github.com/TUI-NICR/DVEFormer) for even better results and further experiments on the ScanNet 
+  dataset.
 
 ## Evaluation
 To reproduce results for the full multi-task approach, use `main.py` together 
 with `--validation-only`.
 
-> Note that building the model correctly depends on the respective dataset and 
-the tasks the model was trained on.
+> [!NOTE]
+> Building the model correctly depends on the respective dataset and the tasks the model was trained on.
 
-> Note that the results below slightly differ due to an unexpected overflow 
-during panoptic merging that was fixed along with preparing the code for the 
-release. However, the results below tend to be slightly better.
-
-> On Apr 20, 2023, we further fixed a small bug in the instance task helper: the MAAE metric object was not reset after computing the metric value (at the end of an epoch), which led to wrong results for *valid_orientation_mae_gt_deg* in consecutive validations. The values reported below are fine as they were computed in a single validation. However, the results reported in our paper slightly differ due the mentioned bug. Use the values below to compare to our approach.
+> [!NOTE]
+> The results below slightly differ due to an unexpected overflow during panoptic merging that was fixed along with 
+preparing the code for the release. However, the results below tend to be slightly better.  
+On Apr 20, 2023, we further fixed a small bug in the instance task helper: the MAAE metric object was not reset after 
+computing the metric value (at the end of an epoch), which led to wrong results for *valid_orientation_mae_gt_deg* in 
+consecutive validations. The values reported below are fine as they were computed in a single validation run. However, 
+the results reported in our paper slightly differ due the mentioned bug. Use the values below to compare to our 
+approach.  
+Finally, note that we observed that outputs of the instance decoder slightly vary depending on the hardware (gpu 
+compute capability). The results below were obtained on a GPU with compute capability 7.5. You can check your gpu 
+compute capability with: `nvidia-smi --query-gpu=compute_cap --format=csv,noheader`.
 
 ### NYUv2
 
@@ -320,25 +330,20 @@ Validation results:
 
 ### SUNRGB-D
 
-> We refactored and updated instance annotation creation from 3D boxes for 
-  SUNRGB-D in `nicr-scene-analysis-datasets` == 0.6.0. The resulting annotations 
-  feature a lot of more instances; however, it is also changing the ground 
-  truth for the evaluation below. For more details and a comparison between 
-  both versions, we refer to our follow-up work Panoptic 
-  Mapping([GitHub](https://github.com/TUI-NICR/panoptic-mapping), 
-  [arXiv](https://arxiv.org/abs/2309.13635)) that proposes the refined 
-  annotations.
-  To reproduce reported EMSANet paper results either use 
-  `nicr-scene-analysis-datasets` >= 0.7.0 and prepare the SUNRGB-D dataset with 
-  `--instances-version emsanet` (or go back with both reposities and use 
-  `nicr-scene-analysis-datasets` <= 0.6.0).
-  For backward compatibility, i.e., to still be able to load a SUNRGB-D dataset 
-  prepared with `nicr-scene-analysis-datasets` < 0.7.0, you can pass 
-  `--sunrgbd-instances-version anyold` to `main.py`; however, use this only if
-  you know what you are doing!  
-  We recommend re-preparing the SUNRGB-D dataset 
-  with `nicr-scene-analysis-datasets` >= 0.7.0 as described above to avoid 
-  any confusion.
+> [!CAUTION]
+> We refactored and updated the instance annotation creation from 3D boxes for SUNRGB-D in 
+  `nicr-scene-analysis-datasets` == 0.6.0. The resulting annotations feature a lot of more instances; however, it is 
+  also changing the ground truth for the evaluation below. For more details and a comparison between both versions, we 
+  refer to our follow-up work Panoptic Mapping([GitHub](https://github.com/TUI-NICR/panoptic-mapping), 
+  [arXiv](https://arxiv.org/abs/2309.13635)) that proposes the refined annotations.
+  To reproduce reported EMSANet paper results either use `nicr-scene-analysis-datasets` >= 0.7.0 and prepare the 
+  SUNRGB-D dataset with `--instances-version emsanet` (or go back with both reposities and use 
+  `nicr-scene-analysis-datasets` <= 0.6.0).  
+  For backward compatibility, i.e., to still be able to load a SUNRGB-D dataset prepared with 
+  `nicr-scene-analysis-datasets` < 0.7.0, you can pass `--sunrgbd-instances-version anyold` to `main.py`; however, use 
+  this only if you know what you are doing!  
+  We recommend re-preparing the SUNRGB-D dataset with `nicr-scene-analysis-datasets` >= 0.7.0 as described above to 
+  avoid any confusion.
 
 
 To evaluate on SUNRGB-D (without pretraining on Hypersim), run:
@@ -436,19 +441,17 @@ Validation results:
 ```
 
 ## Inference
-We provide scripts for inference on both samples drawn from one of our used 
-datasets (`main.py` with additional arguments) and samples located in 
-`./samples` (`inference_samples.py`). 
+We provide scripts for inference on both samples drawn from one of our used datasets (`main.py` with additional 
+arguments) and samples located in `./samples` (`inference_samples.py`). 
 
-> Note that building the model correctly depends on the respective dataset the 
-model was trained on.
+> [!NOTE]
+> Building the model correctly depends on the respective dataset the model was trained on.
 
 ### Dataset Inference
-To run inference on a dataset with the full multi-task approach, use `main.py` 
-together with `--validation-only` and `--visualize-validation`.
-By default the visualized outputs are written to a newly created directory next 
-to the weights. However, you can also specify the output path with 
-`--visualization-output-path`.
+To run inference on a dataset with the full multi-task approach, use `main.py` together with `--validation-only` 
+and `--visualize-validation`. 
+By default the visualized outputs are written to a newly created directory next to the weights. 
+However, you can also specify the output path with `--visualization-output-path`.
 
 Example: To apply EMSANet-R34-NBt1D trained on NYUv2 to samples from NYUv2, run:
 ```bash
@@ -471,20 +474,16 @@ python main.py \
     --skip-sanity-check \
     --wandb-mode disabled
 ```
-Similarly, the same can be applied to SUNRGB-D 
-(see parameters in [evaluation section](#evaluation)).
+Similarly, the same can be applied to SUNRGB-D (see parameters in [evaluation section](#evaluation)).
 
 ### Sample Inference
-Use `inference_samples.py` to apply a trained model to the sample from a 
-Kinect v2 given in `./samples`.
+Use `inference_samples.py` to apply a trained model to the sample from a Kinect v2 given in `./samples`.
 
-> Note that the dataset argument is required to determine the correct dataset
-configuration (classes, colors, ...) and to build the model correctly. 
-However, you do not need to prepare the respective dataset.
-Furthermore, depending on the given depth images and the 
-used dataset for training, an additional depth scaling might be necessary. 
-The provided example depth image is in millimeters (1m equals to a depth 
-value of 1000).
+> [!NOTE]
+> The dataset argument is required to determine the correct dataset configuration (classes, colors, ...) and to build 
+the model correctly. However, you do not need to prepare the respective dataset.  
+Furthermore, depending on the given depth images and the used dataset for training, an additional depth scaling might 
+be necessary. The provided example depth image is in millimeters (1m equals to a depth value of 1000).
 
 Examples: 
 - To apply our EMSANet-R34-NBt1D trained on NYUv2 to the samples, run:
@@ -528,23 +527,23 @@ Examples:
     ```
     ![img](samples/result_sunrgbd.png)
 
-> Note that the models are not trained on that kind of incomplete depth images. 
-Moreover, training on NYUv2 means that no images from Kinect v2 
-were present at all (NYUv2 is Kinect (v1) only).
+> [!NOTE]
+> The models are not trained on that kind of incomplete depth images. Moreover, training on NYUv2 means that no images 
+from Kinect v2 were present at all (NYUv2 is Kinect (v1) only).
 
-> Note that the `--instance-offset-distance-threshold` argument is used to 
-assign an instance ID of 0 to pixels if they have a distance greater than 
-40 pixels from the nearest center. During panoptic merging, these pixels are 
-assigned to the void class.
+> [!TIP]
+> The `--instance-offset-distance-threshold` argument is used to assign an instance ID of 0 to pixels if they have a 
+distance greater than 40 pixels from the nearest center. During panoptic merging, these pixels are assigned to the 
+void class.
 
 ### Time Inference
 
-> Note, for newer versions of TensorRT `onnx2trt` is not required (and also
-  not available) anymore. Pass `--trt-use-get-engine-v2` to
-  `inference_time_whole_model.py` to use TensoRT's Python API instead.
+> [!TIP]
+> Newer versions of TensorRT `onnx2trt` is not required (and also not available) anymore. 
+Pass `--trt-use-get-engine-v2` to `inference_time_whole_model.py` to use TensoRT's Python API instead.
 
-We timed the inference on an NVIDIA Jetson AGX Xavier with Jetpack 4.6 
-(TensorRT 8.0.1.6, PyTorch 1.10.0).
+We timed the inference on an NVIDIA Jetson AGX Xavier with Jetpack 4.6 (TensorRT 8.0.1.6, PyTorch 1.10.0).
+See the corresponding [PhD thesis](#license-and-citations) above for more recent timing results.
 
 Reproducing the timings on an NVIDIA Jetson AGX Xavier further requires:
 - [the PyTorch 1.10.0 wheel](https://nvidia.box.com/shared/static/fjtbno0vpo676a25cgvuqc1wty0fkkg6.whl) from [NVIDIA Forum](https://forums.developer.nvidia.com/t/pytorch-for-jetson-version-1-10-now-available/72048) (see the instruction to install TorchVision 0.11.1 as well)
@@ -578,18 +577,26 @@ Reproducing the timings on an NVIDIA Jetson AGX Xavier further requires:
 Subsequently, you can run `inference_time.bash` to reproduce the reported timings.
 
 ## Training
-Use `main.py` to train EMSANet on NYUv2, SUNRGB-D, Hypersim, or any other 
-dataset that you implemented following the implementation of the provided 
-datasets.
+Use `main.py` to train EMSANet on NYUv2, SUNRGB-D, Hypersim, or any other dataset that you implemented following 
+the implementation of the provided datasets.
 
-> Note that training EMSANet-R34-NBt1D requires the pretrained weights for the 
-encoder backbone ResNet-34 NBt1D. You can download our pretrained weights on 
-ImageNet from [Link](https://drive.google.com/uc?id=10IVoHgRqXLslYdzMNYKAkYHcJdqsk4BT).
+> [!NOTE]
+> Training EMSANet-R34-NBt1D requires the pretrained weights for the encoder backbone ResNet-34 NBt1D. You can download
+our pretrained weights on ImageNet from [Link](https://drive.google.com/uc?id=10IVoHgRqXLslYdzMNYKAkYHcJdqsk4BT).
 
-> Note that we trained all models on NVIDIA A100-SXM4-40GB GPUs with batch 
-size of 8. However, training the full multi-task approach requires only ~14GB 
-of VRAM, so a smaller GPU may also be fine. We did not observe any great boost 
-from larger batch sizes.
+```bash
+python -m pip install gdown  # tested: gdown 5.2.0
+cd ./trained_models
+
+# ImageNet pretrained weights
+gdown 10IVoHgRqXLslYdzMNYKAkYHcJdqsk4BT  # imagenet_r34_NBt1D.tar.gz
+tar -xvzf imagenet_r34_NBt1D.tar.gz
+```
+
+> [!NOTE]
+> We trained all models on NVIDIA A100-SXM4-40GB GPUs with batch size of 8. However, training the full multi-task 
+approach requires only ~14GB of VRAM, so a smaller GPU may also be fine. We did not observe any great boost from larger 
+batch sizes.
 
 Example: Train our full multi-task EMSANet-R34-NBt1D on NYUv2:
 ```bash
@@ -617,9 +624,13 @@ python main.py \
     --wandb-mode disabled
 ```
 
-> To reproduce the results reported in our EMSANet paper for SUNRGB-D, make
-sure to prepare and use the correct dataset version for SUNRGB-D (see note in 
-[evaluation section](#sunrgb-d)).
+> [!TIP]
+> Panoptic merging and computing all metrics during validation is time-consuming. To speed up training, have a look at
+`--validation-skip` and `--validation-force-interval` to reduce the number of validation runs during training.
+
+> [!CAUTION]
+> To reproduce the results reported in our paper for SUNRGB-D, make sure to prepare and use the correct dataset 
+version for SUNRGB-D (see note in [evaluation section](#sunrgb-d)).
 
 For more options, we refer to `./emsanet/args.py` or simply run:
 
@@ -634,10 +645,10 @@ python main.py --help
   However, compatibility to original publication is retained.
 
 **Jan 04, 2026**
-- add more recent environment (`env_emsanet2026.yaml` and `env_emsanet2026_mac.yaml`) 
-  with Python 3.12 and latest tested PyTorch 2.9.1
-- remove old environment files, only point to relevant commit hashes for 
-  original publication (2022) and follow-up work Panoptic Mapping (2023)
+- add more recent environment (`env_emsanet2026.yaml` and `env_emsanet2026_mac.yaml`) with Python 3.12 and latest 
+  tested PyTorch 2.9.1
+- remove old environment files, only point to relevant commit hashes for original publication (2022) and follow-up work 
+  Panoptic Mapping (2023)
 - use ruff for linting
 - bump `lib/nicr-scene-analysis-datasets` to version 0.8.3
 - bump `lib/nicr-multitask-scene-analysis` to version 0.3.1
