@@ -173,28 +173,45 @@ We provide the weights for our selected EMSANet-R34-NBt1D (with ResNet34 NBt1D b
 | SUNRGB-D (test)         | EMSANet-R34-NBt1D                 | 48.39 | 45.56  | 50.15 | 58.14 | 84.85 | 14.24 | 61.83 | 24.5  | [Download](https://drive.google.com/uc?id=1Bonpax9TcTTbk0UH3NoVuNVlENCADc6f) |
 |                         | EMSANet-R34-NBt1D (pre. Hypersim) | 48.47 | 44.18  | 52.84 | 60.67 | 86.01 | 14.10 | 57.22 | 24.5  | [Download](https://drive.google.com/uc?id=1LD4_g-jL4KJPRUmCGgXxx2xGQ7TNZ_o2) |
 
-\* Note that the results will slightly differ if you run the evaluation on your 
-own due to an unexpected overflow during panoptic merging that was fixed along 
-with preparing the code for the release. However, the obtained results tend to 
-be slightly better. For more details, see the 
-[evaluation section](#evaluation) below.  
-\*\* This mIoU is after merging the semantic and instance segmentation to the 
-panoptic segmentation. Since merging is focused on instances, the mIoU might 
-change slightly compared to the one obtained from semantic decoder.  
-\*\*\* We report the FPS for an NVIDIA Jetson AGX Xavier (Jetpack 4.6, 
-TensorRT 8, Float16) without postprocessing (as it is not optimized so far). 
-Note that we only report the inference time for NYUv2 in our paper as it has 
-more classes than SUNRGB-D. Thus, the FPS for SUNRGB-D can be slightly higher 
-(37 vs. 40 classes).
+\* Note that the results will slightly differ if you run the evaluation on your own due to an unexpected overflow 
+during panoptic merging that was fixed along with preparing the code for the release. However, the obtained results 
+tend to be slightly better. For more details, see the [evaluation section](#evaluation) below.  
+\*\* This mIoU is after merging the semantic and instance segmentation to the panoptic segmentation. Since merging is 
+focused on instances, the mIoU might change slightly compared to the one obtained from semantic decoder.  
+\*\*\* We report the FPS for an NVIDIA Jetson AGX Xavier (Jetpack 4.6, TensorRT 8, Float16) without postprocessing 
+(as it is not optimized so far). Note that we only report the inference time for NYUv2 in our paper as it has more 
+classes than SUNRGB-D. Thus, the FPS for SUNRGB-D can be slightly higher (37 vs. 40 classes).
 
 We further provide the pre-training checkpoints we used for the mentioned 
 "pre. Hypersim" results for [NYUv2](https://drive.google.com/uc?id=1toV2usF5Rj5CD28isbExGeand47nvg-2) and 
 [SUNRGB-D](https://drive.google.com/uc?id=1mQkkVqT1le6C4mYfZBCdBsaK4o3w0DE0). 
 Note that the training was done with additional normal estimation task.
 
-Download and extract the models to `./trained_models`.
+Download and extract the models to `./trained_models`, or use the following commands:
+```bash
+python -m pip install gdown  # tested: gdown 5.2.0
+cd ./trained_models
 
-> Check out our follow-up works [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer) and [Panoptic Mapping](https://github.com/TUI-NICR/panoptic-mapping) for even better results and experiments on the ScanNet dataset as well. 
+# NYUv2
+gdown 1fqpj_d_VKsy38kU-X8bLmPK9664N-JaB  # nyuv2_r34_NBt1D.tar.gz
+gdown 1QbOJXVrOzsVM8ltX7AxqFSVLsY6vzvNX  # nyuv2_r34_NBt1D_pre.tar.gz
+
+# SUNRGB-D
+gdown 1Bonpax9TcTTbk0UH3NoVuNVlENCADc6f  # sunrgbd_r34_NBt1D.tar.gz
+gdown 1LD4_g-jL4KJPRUmCGgXxx2xGQ7TNZ_o2  # sunrgbd_r34_NBt1D_pre.tar.gz
+
+# Hypersim pretraining
+gdown 1toV2usF5Rj5CD28isbExGeand47nvg-2  # hypersim_r34_NBt1D_used_for_nyuv2.tar.gz
+gdown 1mQkkVqT1le6C4mYfZBCdBsaK4o3w0DE0  # hypersim_r34_NBt1D_used_for_sunrgbd.tar.gz
+
+# extract
+find . -name "*.tar.gz" -exec tar -xvzf {} \;
+```
+
+> [!TIP] 
+> Check out our follow-up works [EMSAFormer](https://github.com/TUI-NICR/EMSAFormer) and 
+  [Panoptic Mapping](https://github.com/TUI-NICR/panoptic-mapping) for even better results and experiments on the 
+  ScanNet dataset as well. 
 
 ## Evaluation
 To reproduce results for the full multi-task approach, use `main.py` together 
