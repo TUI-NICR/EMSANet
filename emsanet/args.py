@@ -1006,7 +1006,7 @@ class ArgParserEMSANet(ap.ArgumentParser):
                  "checkpointing) in early epochs. For example, passing a"
                  "value of '0.2' and `n_epochs` of '500', skips validation "
                  "for the first 0.2*500 = 100 epochs. A value of '1.0' "
-                 "disables validation at all."
+                 "disables intermediate validations at all."
         )
         group.add_argument(
             '--validation-force-interval',
