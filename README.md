@@ -1,6 +1,6 @@
 # EMSANet: Efficient Multi-Task RGB-D Scene Analysis for Indoor Environments
 
-> 🔥 **2026-XX-XX**: updated to keep it working in 2026+ (see full [changelog](#changelog) below)
+> 🔥 **2026-04-21**: updated to keep it working in 2026+ (see full [changelog](#changelog) below)
 
 > [!TIP]
 > You may also want to have a look at our follow-up works:  
