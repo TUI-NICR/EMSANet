@@ -4,6 +4,8 @@
 """
 import os
 
+from nicr_mt_scene_analysis.data.preprocessing.base import APPLIED_PREPROCESSING_KEY
+from nicr_mt_scene_analysis.data.preprocessing.resize import Resize
 from nicr_mt_scene_analysis.testing.onnx import export_onnx_model
 import pytest
 import torch
@@ -71,6 +73,15 @@ def model_test(tasks,
             (batch_size, 1)+input_shape,
             dtype=torch.bool
         )
+
+    # Add applied preprocessing to batch which is required for postprocessing
+    batch[APPLIED_PREPROCESSING_KEY] = [
+        [{
+            'type': Resize.__name__,
+            'valid_region_slice_y': slice(0, input_shape[0]),
+            'valid_region_slice_x': slice(0, input_shape[1]),
+        },]
+    ]*batch_size
 
     if not training and do_postprocessing:
         # for inference postprocessing, inputs in full resolution are required

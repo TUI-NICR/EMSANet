@@ -9,6 +9,8 @@ import os
 import pytest
 import torch
 
+from nicr_mt_scene_analysis.data.preprocessing.base import APPLIED_PREPROCESSING_KEY
+from nicr_mt_scene_analysis.data.preprocessing.resize import Resize
 from nicr_mt_scene_analysis.testing.onnx import export_onnx_model
 
 from emsanet.args import ArgParserEMSANet
@@ -99,6 +101,15 @@ def decoders_test(args, do_postprocessing, training, tmp_path):
         # for inference postprocessing, inputs in full resolution are required
         batch['rgb_fullres'] = torch.randn((3, 3, input_h, input_w))
         batch['depth_fullres'] = torch.randn((3, 1, input_h, input_w))
+
+    # Add applied preprocessing to batch which is required for postprocessing
+    batch[APPLIED_PREPROCESSING_KEY] = [
+        [{
+            'type': Resize.__name__,
+            'valid_region_slice_y': slice(0, input_h),
+            'valid_region_slice_x': slice(0, input_w),
+        },]
+    ]*3
 
     # apply decoders
     outputs = model(x, skips, batch,
