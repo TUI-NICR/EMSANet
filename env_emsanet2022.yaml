@@ -1,4 +1,4 @@
-name: emsanet
+name: emsanet2022
 channels:
   - pytorch
   - defaults

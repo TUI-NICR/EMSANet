@@ -5,7 +5,6 @@
 """
 from typing import Optional, Iterable, Sequence, Tuple, Union
 
-from collections import OrderedDict
 from copy import deepcopy
 from dataclasses import asdict
 from functools import partial
@@ -26,11 +25,18 @@ from nicr_scene_analysis_datasets.dataset_base import SampleIdentifier
 from nicr_scene_analysis_datasets.dataset_base import SemanticLabel
 from nicr_scene_analysis_datasets.dataset_base import SemanticLabelList
 from nicr_scene_analysis_datasets.pytorch import DatasetType
-from nicr_scene_analysis_datasets.pytorch import KNOWN_DATASETS    # noqa: F401
+from nicr_scene_analysis_datasets.pytorch import KNOWN_DATASETS as _KNOWN_DATASETS    # noqa
 from nicr_scene_analysis_datasets.pytorch import KNOWN_CLASS_WEIGHTINGS    # noqa: F401
 from nicr_scene_analysis_datasets.pytorch import ConcatDataset
 from nicr_scene_analysis_datasets.pytorch import get_dataset_class
 from nicr_scene_analysis_datasets.pytorch import ScanNet
+
+
+# nicr_scene_analysis_datasets > 070 introduced support for ADE20K, however, we
+# do not support the ADE20K-specific data handling here, if you want to use
+# ADE20K with EMSANet, checkout the EMSAFormer repository at:
+# https://github.com/TUI-NICR/EMSAFormer
+KNOWN_DATASETS = tuple(set(_KNOWN_DATASETS) - set(['ade20k']))
 
 
 class ScanNetWithOrientations(ScanNet):
